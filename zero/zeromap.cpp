@@ -5,7 +5,10 @@
 
 #include <iostream>
 #include <string>
+<<<<<<< HEAD
 #include <vector>
+=======
+>>>>>>> 5676e174fad05bbbe23ccad5d0d9cfeadf76a5da
 #include <cstdlib>
 #include <ctime>
 
@@ -152,6 +155,7 @@ int main(){
 		if( !mapob[ index ] ) {
 			mapob[ index ] = true;
 
+<<<<<<< HEAD
 			enemy_type tp = (enemy_type) (rand() % ENEMY_TYPE_COUNT);
 
 			enemies.push_back( enemy_t( index, tp ) );
@@ -162,22 +166,35 @@ int main(){
 
 
 	print( hero, mapob, enemies, width, height );
+=======
+	print( hero, mapob, width, height );
+>>>>>>> 5676e174fad05bbbe23ccad5d0d9cfeadf76a5da
 
 	string directions;
 	bool running = true;
 	bool res = 0;
 
 	while( running ){
+<<<<<<< HEAD
 		res = 0;
+=======
+>>>>>>> 5676e174fad05bbbe23ccad5d0d9cfeadf76a5da
 		cin >> directions;
 		for( int i = 0;  i < directions.length(); ++i ){
 
 			if( directions[i] == 'x' ) goto exit;
+<<<<<<< HEAD
 			res |= movehero( hero, mapob, enemies, width, height, directions[i] );
 		}
 
 		if( res ) print( hero, mapob, enemies, width, height );
 
+=======
+			res |= movehero( hero, mapob, width, height, directions[i] ) ;
+		}
+		
+		if( res ) print( hero, mapob, width, height );
+>>>>>>> 5676e174fad05bbbe23ccad5d0d9cfeadf76a5da
 	}
 
 	exit:
