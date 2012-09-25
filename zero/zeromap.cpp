@@ -1,9 +1,10 @@
-/* 
+/*
 	Created by remax from Synergy
 		2012
 */
 
 #include <iostream>
+#include <string>
 #include <cstdlib>
 #include <ctime>
 
@@ -74,7 +75,7 @@ int main(){
 
 	for(int i = 0, index; i < obstacle;){
 		index = (rand() % height)*width+(rand() % width);
-		if( !mapob[ index ] ) { 
+		if( !mapob[ index ] ) {
 			mapob[ index ] = true;
 			i++;
 		}
@@ -82,15 +83,22 @@ int main(){
 
 
 	print( hero, mapob, width, height );
-	
-	char direction;
+
+	string directions;
 	bool running = true;
+	bool res = 0;
 
 	while( running ){
-		cin >> direction;
-		if( direction == 'x' ) break;
-		if( movehero( hero, mapob, width, height, direction ) ) print( hero, mapob, width, height );
+		cin >> directions;
+		for( int i = 0;  i < directions.length(); ++i ){
+
+			if( directions[i] == 'x' ) goto exit;
+			res |= movehero( hero, mapob, width, height, directions[i] ) ;
+		}
+		
+		if( res ) print( hero, mapob, width, height );
 	}
-	
+
+	exit:
 	return 0;
 }
