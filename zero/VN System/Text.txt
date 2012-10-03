@@ -1,0 +1,5 @@
+1.jpg : Human : what the hell man ?
+2.jpg :Alien : Hmmm.... Take me to your leader !
+1.jpg :Human : You dare order me around !
+2.jpg :Alien : Do it or I will kill you
+1.jpg :Human : Try me !
