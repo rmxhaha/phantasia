@@ -2,13 +2,55 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <iostream>
 
 using namespace std;
 
 sf::Font PTSANS;
 
+bool PTSANS_loaded = false;
+
 sf::String log_string;
 sf::String log_name;
+
+int log_setup_1(){
+	//Load Font
+	if( PTSANS_loaded == false ) if (!PTSANS.LoadFromFile("PTN57F.ttf", 50)) return -1;
+
+	//Setup Strings
+	log_string.SetFont( PTSANS );
+	log_string.SetSize(24.f);
+	log_string.SetColor( sf::Color(255, 255, 255) );
+	log_string.SetPosition(100.f, 500.f);
+
+	log_name.SetFont( PTSANS );
+	log_name.SetSize(40.f);
+	log_name.SetColor( sf::Color(255, 255, 255) );
+	log_name.SetPosition(100.f, 450.f);
+}
+
+int log_setup_2(){
+	//Load Font
+	if( PTSANS_loaded == false ) if (!PTSANS.LoadFromFile("PTN57F.ttf", 50)) return -1;
+
+	log_string.SetFont( PTSANS );
+	log_string.SetSize(24.f);
+	log_string.SetColor( sf::Color(255, 255, 255) );
+	log_string.SetPosition(100.f, 450.f);
+
+}
+
+struct _Log{
+	_Log(){}
+
+	string name;
+	string text;
+	string char_image_url;
+
+	void clean_text();
+};
+
+//============================== STRING OPERATION ==============================
 
 string tolower( string input ){
 	for( int i = input.length(); i--; ){
@@ -45,53 +87,7 @@ string tolower( string input ){
 	return input;
 }
 
-int log_setup(){
-	//Load Font
-	if (!PTSANS.LoadFromFile("PTN57F.ttf", 50)) return -1;
-
-	//Setup Strings
-	log_string.SetFont( PTSANS );
-	log_string.SetSize(24.f);
-	log_string.SetColor( sf::Color(255, 255, 255) );
-	log_string.SetPosition(100.f, 500.f);
-
-	log_name.SetFont( PTSANS );
-	log_name.SetSize(40.f);
-	log_name.SetColor( sf::Color(255, 255, 255) );
-	log_name.SetPosition(100.f, 450.f);
-}
-
-
-//make sure the text is cleaned before entering here
-void break_up( string& text, int word_from_behind ){
-	int count = 0, i;
-	for( i = text.length(); i--; ){
-		if( text[i] == ' ' ) count ++;
-		if( count == word_from_behind ) break;
-	}
-	text.insert( text.begin()+i, '\n' );
-}
-
-void wrap_text( sf::String& input, string text, int width ){ //on development
-	string temporary = text;
-//	while( width <= input.GetSize().x ){
-//		input.SetText( temporary );
-//	}
-
-	input.SetText( text );
-
-}
-
-
-
-struct _Log{
-	_Log(){};
-	string name;
-	string text;
-	string char_image_url;
-};
-
-void clean_text( string& input ){
+void clean_text( string& input ) {
 	int check_index = 0;
 	int write_index = 0;
 
@@ -107,17 +103,17 @@ void clean_text( string& input ){
 			while( input[check_index] == ' ' && check_index < input.length() ) check_index++;
 			check_index--;
 		}
-
-		input[ write_index ] = input[ check_index ];
-
+		
+		if( write_index != check_index ) input[ write_index ] = input[ check_index ];
+		
 		write_index++;
 		check_index++;
 	}
 
 	//Clean the last spaces
-	if( input[write_index-1] == ' ' ){
+	if( input[write_index-1] == ' ' ) {
 		input.resize( write_index-1 );
-	}else{
+	} else {
 		input.resize( write_index );
 	}
 }
@@ -134,7 +130,6 @@ void add_quote( string& input ){
 
 	//add quotation mark add the end of the sentence
 	input.insert( input.end(), '\"' );
-
 }
 
 void clean_text_quote( _Log& log ){
@@ -142,15 +137,21 @@ void clean_text_quote( _Log& log ){
 	clean_text( log.name );
 
 	if( tolower(log.name) != "narator" ){
+		int index;
+
 		//clean the last space first before adding quotation mark
-		int index = log.text.find_last_not_of(' ');
+		index = log.text.find_last_not_of(' ');
+		if( index >= 0 && index != log.text.length()-1 ) log.text.erase( log.text.begin()+index );
 
-		if( index >= 0 ) log.text.erase( log.text.begin()+index );
+		//clean the first space first before adding quotation mark
+		index = log.text.find_first_not_of(' ');
+		if( index >= 0 && index != log.text.length()-1 ) log.text.erase( log.text.begin(), log.text.begin()+index );
 
 
-		//the person is not a narator add a quotation mark
+		//if the person is not a narator add a quotation mark
 		add_quote( log.text );
 	} else {
+		//for further use
 		log.name = tolower( log.name );
 	}
 
@@ -174,7 +175,6 @@ void remove_space( string& input ){
 	input.resize( write_index );
 }
 
-
 void load_text_file( vector<_Log>& logs, string filename ){
 	logs.clear();
 
@@ -188,26 +188,35 @@ void load_text_file( vector<_Log>& logs, string filename ){
 		logs.push_back( _Log() );
 
 		getline( textfile, line );
+
 		int i = 0;
 		for( ; i < line.length() && line[i] != ':'; ++i ){
-			logs[linenum].char_image_url += line[i];
+			if( line[i] == '|' )
+				logs[linenum].char_image_url += '\n';
+			else
+				logs[linenum].char_image_url += line[i];
 		}
 
 		i++;
 
 		for( ; i < line.length() && line[i] != ':' ; ++i ){
-			logs[linenum].name += line[i];
+			if( line[i] == '|' )
+				logs[linenum].name += '\n';
+			else
+				logs[linenum].name += line[i];
 		}
 
 		i++;
 
 
 		for( ; i < line.length(); ++i ){
-			logs[linenum].text += line[i];
+			if( line[i] == '|' )
+				logs[linenum].text += '\n';
+			else
+				logs[linenum].text += line[i];
 		}
-
-		clean_text_quote( logs[linenum] );
-		remove_space( logs[linenum].char_image_url );
+		
+		logs[linenum].clean_text();
 
 		linenum++;
 	}
@@ -215,13 +224,23 @@ void load_text_file( vector<_Log>& logs, string filename ){
 	textfile.close();
 }
 
+//============================== END ==============================
+
+//============================== _Log PATCH ==============================
+
+void _Log::clean_text(){
+	::clean_text_quote( *this );
+	::remove_space( this -> char_image_url );
+}
+
+//============================== END ==============================
 
 
 int main( int argc, char * argv[] ){
 	sf::RenderWindow App(sf::VideoMode(800, 600), "VN System");
 	App.SetFramerateLimit(20); //max FPS
 
-	log_setup();
+	log_setup_1();
 
 	sf::Event Event;
 	int log_index = 0;
@@ -243,14 +262,22 @@ int main( int argc, char * argv[] ){
 
 		App.Clear( sf::Color( 0,0,0 ) );
 
-		log_string.SetText( logs[log_index].text );
-		App.Draw(log_string);
+		if( logs[log_index].name != "narator" ){
+			log_string.SetText( logs[log_index].text );
+			App.Draw(log_string);
 
-		log_name.SetText( logs[log_index].name );
-		App.Draw(log_name);
+			log_name.SetText( logs[log_index].name );
+			App.Draw(log_name);
+		}else{
+			log_string.SetText( logs[log_index].text );
+			App.Draw(log_string);
+
+		}
 
 		App.Display();
 
 	}
 
+
+	return 0;
 }

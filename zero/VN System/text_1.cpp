@@ -1,14 +1,21 @@
-#include <SFML/Graphics.hpp>
 #include <string>
+#include <iostream>
 #include <vector>
 #include <fstream>
 
 using namespace std;
 
-sf::Font PTSANS;
+struct _Log{
+	_Log(){}
 
-sf::String log_string;
-sf::String log_name;
+	string name;
+	string text;
+	string char_image_url;
+
+	void clean_text();
+};
+
+//============================== STRING OPERATION ==============================
 
 string tolower( string input ){
 	for( int i = input.length(); i--; ){
@@ -44,52 +51,6 @@ string tolower( string input ){
 
 	return input;
 }
-
-int log_setup(){
-	//Load Font
-	if (!PTSANS.LoadFromFile("PTN57F.ttf", 50)) return -1;
-
-	//Setup Strings
-	log_string.SetFont( PTSANS );
-	log_string.SetSize(24.f);
-	log_string.SetColor( sf::Color(255, 255, 255) );
-	log_string.SetPosition(100.f, 500.f);
-
-	log_name.SetFont( PTSANS );
-	log_name.SetSize(40.f);
-	log_name.SetColor( sf::Color(255, 255, 255) );
-	log_name.SetPosition(100.f, 450.f);
-}
-
-
-//make sure the text is cleaned before entering here
-void break_up( string& text, int word_from_behind ){
-	int count = 0, i;
-	for( i = text.length(); i--; ){
-		if( text[i] == ' ' ) count ++;
-		if( count == word_from_behind ) break;
-	}
-	text.insert( text.begin()+i, '\n' );
-}
-
-void wrap_text( sf::String& input, string text, int width ){ //on development
-	string temporary = text;
-//	while( width <= input.GetSize().x ){
-//		input.SetText( temporary );
-//	}
-
-	input.SetText( text );
-
-}
-
-
-
-struct _Log{
-	_Log(){};
-	string name;
-	string text;
-	string char_image_url;
-};
 
 void clean_text( string& input ){
 	int check_index = 0;
@@ -142,15 +103,21 @@ void clean_text_quote( _Log& log ){
 	clean_text( log.name );
 
 	if( tolower(log.name) != "narator" ){
+		int index;
+
 		//clean the last space first before adding quotation mark
-		int index = log.text.find_last_not_of(' ');
+		index = log.text.find_last_not_of(' ');
+		if( index >= 0 && index != log.text.length()-1 ) log.text.erase( log.text.begin()+index );
 
-		if( index >= 0 ) log.text.erase( log.text.begin()+index );
+		//clean the first space first before adding quotation mark
+		index = log.text.find_first_not_of(' ');
+		if( index >= 0 && index != log.text.length()-1 ) log.text.erase( log.text.begin(), log.text.begin()+index );
 
 
-		//the person is not a narator add a quotation mark
+		//if the person is not a narator add a quotation mark
 		add_quote( log.text );
 	} else {
+		//for further use 
 		log.name = tolower( log.name );
 	}
 
@@ -174,7 +141,6 @@ void remove_space( string& input ){
 	input.resize( write_index );
 }
 
-
 void load_text_file( vector<_Log>& logs, string filename ){
 	logs.clear();
 
@@ -188,6 +154,7 @@ void load_text_file( vector<_Log>& logs, string filename ){
 		logs.push_back( _Log() );
 
 		getline( textfile, line );
+
 		int i = 0;
 		for( ; i < line.length() && line[i] != ':'; ++i ){
 			logs[linenum].char_image_url += line[i];
@@ -205,9 +172,7 @@ void load_text_file( vector<_Log>& logs, string filename ){
 		for( ; i < line.length(); ++i ){
 			logs[linenum].text += line[i];
 		}
-
-		clean_text_quote( logs[linenum] );
-		remove_space( logs[linenum].char_image_url );
+		logs[linenum].clean_text();
 
 		linenum++;
 	}
@@ -215,42 +180,25 @@ void load_text_file( vector<_Log>& logs, string filename ){
 	textfile.close();
 }
 
+//============================== END ==============================
+
+//============================== _Log PATCH ==============================
+
+void _Log::clean_text(){
+	::clean_text_quote( *this );
+	::remove_space( this -> char_image_url );
+}
+
+//============================== END ==============================
 
 
 int main( int argc, char * argv[] ){
-	sf::RenderWindow App(sf::VideoMode(800, 600), "VN System");
-	App.SetFramerateLimit(20); //max FPS
-
-	log_setup();
-
-	sf::Event Event;
-	int log_index = 0;
 	vector<_Log> logs;
 	load_text_file( logs, "Text.txt");
 
-	while (App.IsOpened()){
-		while (App.GetEvent(Event)){
-            // Close window : exit
-            if (Event.Type == sf::Event::Closed)
-                App.Close();
-			if( Event.Type == sf::Event::KeyPressed ){
-				if( Event.Key.Code == sf::Key::Return )
-					if( log_index < logs.size()-1 ) log_index++;
-
-			}
-        }
-
-
-		App.Clear( sf::Color( 0,0,0 ) );
-
-		log_string.SetText( logs[log_index].text );
-		App.Draw(log_string);
-
-		log_name.SetText( logs[log_index].name );
-		App.Draw(log_name);
-
-		App.Display();
-
+	for( int i = 0; i<logs.size(); i++ ){
+		cout << logs[i].name << " : " << logs[i].text << endl;
 	}
 
+	return 0;
 }
