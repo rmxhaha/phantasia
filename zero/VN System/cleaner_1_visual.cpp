@@ -3,8 +3,14 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <cstdlib>
+#include "image_manager.cpp"
 
 using namespace std;
+
+const float WINDOW_WIDTH = 1280.f;
+const float WINDOW_HEIGHT = 720.f;
+
 
 sf::Font PTSANS;
 
@@ -16,18 +22,21 @@ sf::String log_name;
 
 int log_setup_1(){
 	//Load Font
-	if( PTSANS_loaded == false ) if (!PTSANS.LoadFromFile("PTN57F.ttf", 50)) return -1;
+	if( PTSANS_loaded == false ){
+		if (!PTSANS.LoadFromFile("PTN57F.ttf", 50)) return -1;
+		PTSANS_loaded = true;
+	}
 
 	//Setup Strings
 	log_string.SetFont( PTSANS );
 	log_string.SetSize(24.f);
 	log_string.SetColor( sf::Color(255, 255, 255) );
-	log_string.SetPosition(100.f, 500.f);
+	log_string.SetPosition(100.f, 600.f);
 
 	log_name.SetFont( PTSANS );
 	log_name.SetSize(40.f);
 	log_name.SetColor( sf::Color(255, 255, 255) );
-	log_name.SetPosition(100.f, 450.f);
+	log_name.SetPosition(100.f, 550.f);
 }
 
 
@@ -70,13 +79,15 @@ string tolower( string input ){
 	return input;
 }
 
+
+//function nesting
 int parseInt( const string& input ){
-	return 0;
+	return atoi( input.c_str() ); 
 }
 
 
 float char_width[256];
-const int log_width = 900;
+const int log_width = 1600;
 
 //============================= LOG CLASS =============================
 class _Log {
@@ -88,17 +99,18 @@ public:
 	string text;
 	string image_path;
 	string sound_path;
-	int left; //cleaned during loading
+	int align; //cleaned during loading
 
 	void clean();
+	void clear(); //delete all data
+	void draw( sf::RenderWindow& App );
 private:
 
 	void clean_name();
 	void clean_log_text();
 	void clean_image_path();
 	void clean_sound_path();
-	
-	
+
 	void clean_path( string& input );
 };
 
@@ -121,7 +133,7 @@ void _Log::clean_name(){
 		name.clear();
 		return;
 	}
-	
+
 	//Clean double or more spaces together
 	while( check_index < name.length() ) {
 		if( name[check_index] == ' ' ) {
@@ -246,17 +258,23 @@ void _Log::clean_log_text(){
 }
 
 void _Log::clean_path( string& input ){
+	if( input.length() == 0 ) return;
 
 	//remove all spaces
 	int check_index = input.find_first_not_of(' ');
 	int write_index = 0;
 	int temp_index;
-	
+
+	if( check_index == -1 ){
+		input.clear();
+		return;
+	}
+
 	while( check_index < input.length() ){
 		if( input[check_index] != ' ' ){
 			temp_index = check_index;
 		}
-		
+
 		if( input[check_index] == '\\' ){
 			check_index = input.find_first_not_of( '\\', check_index );
 			if( check_index != -1 ){
@@ -270,9 +288,10 @@ void _Log::clean_path( string& input ){
 		write_index++;
 		check_index++;
 	}
-	
 
-	input.resize( temp_index );}
+
+	input.resize( temp_index + 1 );
+}
 
 void _Log::clean_image_path(){
 	clean_path( image_path );
@@ -282,6 +301,49 @@ void _Log::clean_sound_path(){
 	clean_path( sound_path );
 }
 
+void _Log::clear(){
+	name.clear();
+	text.clear();
+	image_path.clear();
+	sound_path.clear();
+	align = 0;
+}
+
+void _Log::draw( sf::RenderWindow& App ){
+	if( image_path.length() != 0 && ( align == 1 || align == 2 || align == 3 ) ){
+		sf::Sprite Sprite;
+		
+		Sprite.SetImage(ImageManager.GetImage( image_path ));
+		
+		Sprite.SetY( WINDOW_HEIGHT - Sprite.GetSize().y );
+		switch( align ){
+
+		case 1:
+			Sprite.SetX( 100.f );
+			break;
+		case 2:
+			Sprite.SetX( WINDOW_WIDTH/2 - Sprite.GetSize().x /2 );
+			break;
+			
+		case 3:
+			Sprite.setX( WINDOW_WIDTH - 100.f - Sprite.GetSize().x );
+		}
+		
+		App.Draw( Sprite );
+	}
+	
+	if( name != "narator" ){
+		::log_string.SetText( text );
+		App.Draw( ::log_string );
+
+		::log_name.SetText( name );
+		App.Draw( ::log_name );
+	}else{
+		::log_string.SetText( text );
+		App.Draw( ::log_string);
+
+	}
+}
 // ============================= END =============================
 
 // ============================= FILE OPERATION =============================
@@ -290,33 +352,88 @@ void load_text_file( vector<_Log>& logs, string filename ){
 	logs.clear();
 
 	ifstream textfile;
-	string line;
-	textfile.open( filename.c_str() );
+
+	char c;
+	string temp_string;
 
 	int linenum = 0;
-	while( !textfile.eof() )
+
+	textfile.open( filename.c_str() );
+
+	while( textfile.good() )
 	{
 		logs.push_back( _Log() );
+		goto skip2;
+		
+		skip:
+		logs[linenum].clear();
+		
+		skip2:
+		
+		// =================================
+		// FIRST PARAMETER : image_path
+		// =================================
 
-		getline( textfile, line );
+		c = textfile.get();
 
-		int i = 0;
+		while ( textfile.good() && c != '|' ) {
+			if( c == '\n' ) goto skip;
 
-		for( ; i < line.length() && line[i] != ';'; ++i ) {
-			logs[linenum].image_path += line[i];
+			logs[linenum].image_path += c;
+			c = textfile.get();
 		}
 
-		i++;
+		// =====================================
+		// SECOND PARAMETER : image_alignment
+		// =====================================
 
-		for( ; i < line.length() && line[i] != ':' ; ++i ){
-			logs[linenum].name += line[i];
+		c = textfile.get();
+
+		temp_string.clear();
+		while( textfile.good() && c != '|' ){
+			if( c == '\n' ) goto skip;
+
+			temp_string += c;
+			c = textfile.get();
 		}
 
-		i++;
+		logs[linenum].align = parseInt( temp_string );
 
+		// =====================================
+		// THIRD PARAMETER : sound_path
+		// =====================================
 
-		for( ; i < line.length(); ++i ){
-			logs[linenum].text += line[i];
+		c = textfile.get();
+
+		while ( textfile.good() && c != '|' ) {
+			if( c == '\n' ) goto skip;
+
+			logs[linenum].sound_path += c;
+			c = textfile.get();
+		}
+
+		// =====================================
+		// FOURTH PARAMETER : name
+		// =====================================
+
+		c = textfile.get();
+
+		while ( textfile.good() && c != ':' ) {
+			if( c == '\n' )	goto skip;
+
+			logs[linenum].name += c;
+			c = textfile.get();
+		}
+
+		// =====================================
+		// FIFTH PARAMETER : log_text
+		// =====================================
+
+		c = textfile.get();
+
+		while ( textfile.good() && c != '\n' ) {
+			logs[linenum].text += c;
+			c = textfile.get();
 		}
 
 		logs[linenum].clean();
@@ -341,7 +458,7 @@ int main(){
 	}
 
 
-	sf::RenderWindow App(sf::VideoMode(800, 600), "VN System");
+	sf::RenderWindow App(sf::VideoMode( WINDOW_WIDTH, WINDOW_HEIGHT ), "VN System");
 	App.SetFramerateLimit(20); //max FPS
 
 	log_setup_1();
@@ -353,6 +470,15 @@ int main(){
 	vector<_Log> logs;
 	load_text_file( logs, "Text.txt");
 
+//	for( int i = 0; i < logs.size() ; ++ i ){
+		// cout << logs[i].image_path << endl;
+		// cout << logs[i].sound_path << endl;
+		// cout << logs[i].name << endl;
+		// cout << logs[i].text << endl;
+		// cin.get();
+//	}
+
+
 	while (App.IsOpened()){
 		while (App.GetEvent(Event)){
             // Close window : exit
@@ -361,28 +487,18 @@ int main(){
 			if( Event.Type == sf::Event::KeyPressed ){
 				if( Event.Key.Code == sf::Key::Return )
 					if( log_index < logs.size()-1 ) log_index++;
-
 			}
         }
 
 
 		App.Clear( sf::Color( 0,0,0 ) );
 
-		if( logs[log_index].name != "narator" ){
-			log_string.SetText( logs[log_index].text );
-			App.Draw(log_string);
-
-			log_name.SetText( logs[log_index].name );
-			App.Draw(log_name);
-		}else{
-			log_string.SetText( logs[log_index].text );
-			App.Draw(log_string);
-
-		}
+		logs[ log_index ].draw( App );
 
 		App.Display();
 
 	}
+
 
 	return 0;
 }
