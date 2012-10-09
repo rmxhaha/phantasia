@@ -70,6 +70,8 @@ string tolower( string input ){
 	return input;
 }
 
+
+
 float char_width[256];
 const int log_width = 900;
 
@@ -81,20 +83,22 @@ public:
 
 	string name;
 	string text;
-	string char_image_url;
+	string image_path;
+	string sound_path;
+	int left;
 
 	void clean();
 private:
 
 	void clean_name();
 	void clean_log_text();
-	void clean_char_image_url();
+	void clean_image_path();
 };
 
 void _Log::clean(){
 	clean_name();
 	clean_log_text();
-	clean_char_image_url();
+	clean_image_path();
 }
 
 void _Log::clean_name(){
@@ -230,29 +234,28 @@ void _Log::clean_log_text(){
 	return;
 }
 
-void _Log::clean_char_image_url(){
-	string& input = this -> char_image_url;
-	//remove all spaces
+void _Log::clean_image_path(){
 
-	int check_index = input.find_first_not_of(' ');
+	//remove all spaces
+	int check_index = image_path.find_first_not_of(' ');
 	int write_index = 0;
 
-	while( check_index < input.length() ){
-		if( input[check_index] == '\\' ){
-			check_index = input.find_first_not_of( '\\', check_index );
+	while( check_index < image_path.length() ){
+		if( image_path[check_index] == '\\' ){
+			check_index = image_path.find_first_not_of( '\\', check_index );
 			if( check_index != -1 ){
 				check_index--;
 			} else {
-				check_index = input.find_last_of( '\\' );
+				check_index = image_path.find_last_of( '\\' );
 			}
 		}
 
-		input[write_index] = input[check_index];
+		image_path[write_index] = image_path[check_index];
 		write_index++;
 		check_index++;
 	}
 
-	input.resize( write_index );
+	image_path.resize( write_index );
 }
 
 // ============================= END =============================
@@ -275,7 +278,7 @@ void load_text_file( vector<_Log>& logs, string filename ){
 
 		int i = 0;
 		for( ; i < line.length() && line[i] != ':'; ++i ){
-			logs[linenum].char_image_url += line[i];
+			logs[linenum].image_path += line[i];
 		}
 
 		i++;
