@@ -70,6 +70,9 @@ string tolower( string input ){
 	return input;
 }
 
+int parseInt( const string& input ){
+	return 0;
+}
 
 
 float char_width[256];
@@ -85,7 +88,7 @@ public:
 	string text;
 	string image_path;
 	string sound_path;
-	int left;
+	int left; //cleaned during loading
 
 	void clean();
 private:
@@ -93,12 +96,17 @@ private:
 	void clean_name();
 	void clean_log_text();
 	void clean_image_path();
+	void clean_sound_path();
+	
+	
+	void clean_path( string& input );
 };
 
 void _Log::clean(){
 	clean_name();
 	clean_log_text();
 	clean_image_path();
+	clean_sound_path();
 }
 
 void _Log::clean_name(){
@@ -108,9 +116,12 @@ void _Log::clean_name(){
 	//search for the first characters which is not a space
 	check_index = name.find_first_not_of(' ');
 
-	//there is no need to clean if there is not a single space in the sentence
-	if( check_index == -1 ) return;
-
+	if( check_index == -1 ){
+		//there is no need to clean if all the characters are spaces
+		name.clear();
+		return;
+	}
+	
 	//Clean double or more spaces together
 	while( check_index < name.length() ) {
 		if( name[check_index] == ' ' ) {
@@ -234,28 +245,41 @@ void _Log::clean_log_text(){
 	return;
 }
 
-void _Log::clean_image_path(){
+void _Log::clean_path( string& input ){
 
 	//remove all spaces
-	int check_index = image_path.find_first_not_of(' ');
+	int check_index = input.find_first_not_of(' ');
 	int write_index = 0;
-
-	while( check_index < image_path.length() ){
-		if( image_path[check_index] == '\\' ){
-			check_index = image_path.find_first_not_of( '\\', check_index );
+	int temp_index;
+	
+	while( check_index < input.length() ){
+		if( input[check_index] != ' ' ){
+			temp_index = check_index;
+		}
+		
+		if( input[check_index] == '\\' ){
+			check_index = input.find_first_not_of( '\\', check_index );
 			if( check_index != -1 ){
 				check_index--;
 			} else {
-				check_index = image_path.find_last_of( '\\' );
+				check_index = input.find_last_of( '\\' );
 			}
 		}
 
-		image_path[write_index] = image_path[check_index];
+		input[write_index] = input[check_index];
 		write_index++;
 		check_index++;
 	}
+	
 
-	image_path.resize( write_index );
+	input.resize( temp_index );}
+
+void _Log::clean_image_path(){
+	clean_path( image_path );
+}
+
+void _Log::clean_sound_path(){
+	clean_path( sound_path );
 }
 
 // ============================= END =============================
@@ -277,7 +301,8 @@ void load_text_file( vector<_Log>& logs, string filename ){
 		getline( textfile, line );
 
 		int i = 0;
-		for( ; i < line.length() && line[i] != ':'; ++i ){
+
+		for( ; i < line.length() && line[i] != ';'; ++i ) {
 			logs[linenum].image_path += line[i];
 		}
 
