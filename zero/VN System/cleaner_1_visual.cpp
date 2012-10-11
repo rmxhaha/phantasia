@@ -1,10 +1,15 @@
+/*
+	Created by remax from Synergy
+		2012
+*/
+
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <string>
 #include <cstdlib>
-#include "image_manager.cpp"
+#include "image_manager/image_manager.cpp"
 
 using namespace std;
 
@@ -82,29 +87,36 @@ string tolower( string input ){
 
 //function nesting
 int parseInt( const string& input ){
-	return atoi( input.c_str() ); 
+	return atoi( input.c_str() );
 }
 
 
 float char_width[256];
 const int log_width = 1600;
+image_manager VNImageManager;
 
 //============================= LOG CLASS =============================
 class _Log {
 
 public:
-	_Log(){}
-
+	_Log() : image_loaded(0) {}
+	~_Log(){ clean(); }
 	string name;
 	string text;
 	string image_path;
 	string sound_path;
 	int align; //cleaned during loading
 
+
 	void clean();
 	void clear(); //delete all data
 	void draw( sf::RenderWindow& App );
+	void load_image();
+
 private:
+
+	bool image_loaded;
+	sf::Sprite Sprite;
 
 	void clean_name();
 	void clean_log_text();
@@ -310,28 +322,9 @@ void _Log::clear(){
 }
 
 void _Log::draw( sf::RenderWindow& App ){
-	if( image_path.length() != 0 && ( align == 1 || align == 2 || align == 3 ) ){
-		sf::Sprite Sprite;
-		
-		Sprite.SetImage(ImageManager.GetImage( image_path ));
-		
-		Sprite.SetY( WINDOW_HEIGHT - Sprite.GetSize().y );
-		switch( align ){
+	if( !image_loaded ) load_image();
+	App.Draw( Sprite );
 
-		case 1:
-			Sprite.SetX( 100.f );
-			break;
-		case 2:
-			Sprite.SetX( WINDOW_WIDTH/2 - Sprite.GetSize().x /2 );
-			break;
-			
-		case 3:
-			Sprite.setX( WINDOW_WIDTH - 100.f - Sprite.GetSize().x );
-		}
-		
-		App.Draw( Sprite );
-	}
-	
 	if( name != "narator" ){
 		::log_string.SetText( text );
 		App.Draw( ::log_string );
@@ -344,6 +337,41 @@ void _Log::draw( sf::RenderWindow& App ){
 
 	}
 }
+
+void _Log::load_image(){
+	if( image_loaded == false && image_path.length() != 0 ) {
+		Sprite.SetImage( VNImageManager.get_image( image_path ) );
+
+		Sprite.SetY( WINDOW_HEIGHT - Sprite.GetSize().y );
+
+		switch( align ){
+
+		case 1:
+			Sprite.SetX( 0.f );
+			break;
+		case 2:
+			Sprite.SetX( 100.f );
+			break;
+
+		case 3:
+			Sprite.SetX( WINDOW_WIDTH/2 - Sprite.GetSize().x /2 );
+			break;
+
+		case 4:
+			Sprite.SetX( WINDOW_WIDTH - 100.f - Sprite.GetSize().x );
+			break;
+
+		case 5:
+			Sprite.SetX( WINDOW_WIDTH - Sprite.GetSize().x );
+			break;
+
+		}
+
+
+		image_loaded = true;
+	}
+}
+
 // ============================= END =============================
 
 // ============================= FILE OPERATION =============================
@@ -364,12 +392,12 @@ void load_text_file( vector<_Log>& logs, string filename ){
 	{
 		logs.push_back( _Log() );
 		goto skip2;
-		
+
 		skip:
 		logs[linenum].clear();
-		
+
 		skip2:
-		
+
 		// =================================
 		// FIRST PARAMETER : image_path
 		// =================================
@@ -485,8 +513,15 @@ int main(){
             if (Event.Type == sf::Event::Closed)
                 App.Close();
 			if( Event.Type == sf::Event::KeyPressed ){
-				if( Event.Key.Code == sf::Key::Return )
-					if( log_index < logs.size()-1 ) log_index++;
+				if( Event.Key.Code == sf::Key::Return ){
+					if( log_index < logs.size()-1 ) {
+						if( logs[ log_index ].image_path != logs[ log_index + 1 ].image_path ){
+							VNImageManager.delete_image( logs[ log_index ].image_path );
+						}
+
+						log_index++;
+					}
+				}
 			}
         }
 
