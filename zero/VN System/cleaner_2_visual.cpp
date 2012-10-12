@@ -70,9 +70,9 @@ namespace VN {
 	float char_width[256];
 	const float log_width = 1000;
 	image_manager VNImageManager;
-	
+
 	sf::Sprite log_back;
-	
+
 	vector<_Log> logs;
 
 	sf::Font PTSANS;
@@ -99,7 +99,7 @@ namespace VN {
 		log_name.SetSize(40.f);
 		log_name.SetColor( sf::Color(255, 255, 255) );
 		log_name.SetPosition(100.f, 535.f);
-		
+
 		log_back.SetImage( VNImageManager.get_image( "Temp_log.png" ) );
 		log_back.SetX( 0.f );
 		log_back.SetY( 580.f );
@@ -122,7 +122,7 @@ namespace VN {
 		void clear(); //delete all data
 		void draw_text( sf::RenderWindow& App );
 		void draw_image( sf::RenderWindow& App );
-		
+
 		void load_image();
 
 	private:
@@ -330,7 +330,7 @@ namespace VN {
 		text.clear();
 		image_path.clear();
 		sound_path.clear();
-		
+
 		if( image_loaded ) VNImageManager.delete_image( image_path );
 		align = 0;
 	}
@@ -353,7 +353,7 @@ namespace VN {
 		if( !image_loaded ) load_image();
 		App.Draw( Sprite );
 	}
-	
+
 	void _Log::load_image(){
 		if( image_loaded == false && image_path.length() != 0 ) {
 			Sprite.SetImage( VNImageManager.get_image( image_path ) );
@@ -522,7 +522,7 @@ namespace VN {
 
 	void print_log(){
 		//print logs for debugging
-		
+
 		for( int i = 0; i < logs.size() ; ++ i ){
 			cout << logs[i].image_path << endl;
 			cout << logs[i].sound_path << endl;
@@ -531,14 +531,14 @@ namespace VN {
 			cin.get();
 		}
 	}
-	
+
 	void Draw( sf::RenderWindow& App ) {
 		logs[ log_index ].draw_image( App );
 		App.Draw( log_back );
 		logs[ log_index ].draw_text( App );
 	}
-	
-	//Call this to move on to the next log 
+
+	//Call this to move on to the next log
 	void Next(){
 		if( log_index+1 < logs.size() ) {
 			if( logs[ log_index ].image_path != logs[ log_index + 1 ].image_path ){
@@ -578,7 +578,6 @@ int main(){
 		App.Display();
 
 	}
-
-
+	
 	return 0;
 }
