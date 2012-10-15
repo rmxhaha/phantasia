@@ -1,0 +1,5 @@
+Kind remminder for those who might think that these ogg files may not be used for whatever reason.
+
+*.ogg files are only used for testing
+These sound resources won't be used for the final game or any comercial use
+and if you copied and misused it I am not responsible 

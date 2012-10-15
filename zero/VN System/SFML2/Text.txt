@@ -1,0 +1,31 @@
+Music Dungeon1.ogg
+
+display A.png|2 |B.png|5
+play Quake.ogg|Wind.ogg|Wind.ogg|Quake.ogg
+Susan : A Quick Brown Fox jumps over the lazy dog.
+
+display A.png|1|A.png|2|A.png|3|A.png|4|A.png|5
+Multiple me : I am one
+
+display A.png|3
+Characaters Test : a b c d e f g h i j k l m n o p q r s t u a b c d e f g h i j k l m n o p q r s t u a b c d e f g h i j k l m n o p q r s t u a b c d e f g h i j k l m n o p q r s t u a b c d e f g h i j k l m n o p q r s t u a b c d e f g h i j k l m n o p q r s t u
+
+display A.png|5
+Mary : I am upset. Somebody told my boss I have a part-time job.
+
+Music Dungeon2.ogg
+display A.png|3
+Smith: And he doesn't like that ?
+
+display A.png|1
+Mary: No, he doesn't. He thinks that I am too tired to work.
+
+display A.png|2
+Smith: I am sorry. I have to admit I told him.
+
+display A.png|4
+Mary : I couldn't help it. He asked me point-blank.   
+
+NaRaTor : The boss came at her and Mary ...
+nAraTOr : Quit her job
+NaRaTor : The end

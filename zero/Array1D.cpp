@@ -72,6 +72,15 @@ private:
 
 
 int main(){
+	bool * x;
+	x = new bool*[100];
+	for( int i = 0; i < 100; ++i ) x[i] = new bool[100];
+	
+	
+	
+	
+	
+	
 	Array2D<int> yolo( 10, 10 );
 	yolo.fill( 0 );
 	cin >> yolo( 9, 3 );
