@@ -154,6 +154,7 @@ void walk_map::add_random_enemy( int number ){
 		}
 	}
 }
+
 void walk_map::add_random_wall( int number ){
 	int i = map_height*map_width;
 	int rx,ry;

@@ -3,7 +3,7 @@
 using namespace std;
 
 template<class Type>
-class Array2D {
+class deux {
 
 public:
 	Type& operator() ( int x, int y ) {
@@ -14,29 +14,15 @@ public:
 		}
 	}
 
-	Type& operator[] ( int index ){
-		if( index < size ){
-			return *( p + index );
-		} else {
-			*( p );
-		}
-	}
-
-	Array2D( int width, int height ) {
+	deux( int width, int height ) {
 		this -> p = NULL;
 		this -> width = width;
 		this -> size = width * height;
 
 		//delete prior data if there are any
 		delete[] p;
-
-		//allocate data requested
+		
 		p = new Type[ size ];
-	}
-	Array2D(){
-		this -> p = NULL;
-		this -> width = 0;
-		this -> size = 0;
 	}
 
 	void fill( Type input ){
@@ -44,20 +30,27 @@ public:
 			*(p+i) = input;
 		}
 	}
-	
-	void redefine( int width, int height ){
-		this -> width = width;
-		this -> size = width * height;
-
-		//delete prior data if there are any
-		delete[] p;
-
-		//allocate data requested
-		p = new Type[ size ];
-	}
 
 private:
 	Type * p; //array data
 	int width; //width of the array
 	int size; //size of the array
 };
+
+
+int main(){
+	deux<int> q(10,10);
+	
+	for( int i = 10; i--; ) {
+		for( int j = 10; j--; ) {
+//			cin >> q( i,j );
+		}
+	}
+
+	cin >> q( 0,0 );
+
+	cout << q( 0, 200 );
+
+	return 0;
+}
+
