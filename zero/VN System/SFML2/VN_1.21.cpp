@@ -588,7 +588,7 @@ int main(){
                 App.close();
 			if( Event.type == sf::Event::KeyPressed )
 				if( Event.key.code == sf::Keyboard::Return ) VN::Next();
-        }
+		}
 
 
 		App.clear( sf::Color( 0,0,0 ) );
