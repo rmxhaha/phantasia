@@ -6,6 +6,7 @@
 #include <cassert>
 #include <SFML/Graphics.hpp>
 #include "Array2D.cpp"
+#include "RString.cpp"
 
 using namespace std;
 
@@ -112,7 +113,7 @@ private:
 	sf::Texture texture;
 };
 
-image_t * get_image( string fileLoc ){
+image_t * get_image( const string& fileLoc ){
 	int i = 0;
 	for( ; i < imagePool.size(); ++i ){
 		if( imagePool[i] -> fileLocation() == fileLoc )
@@ -231,17 +232,17 @@ private:
 	image_t * image;
 };
 
-tile_t * new_tile( string fileLoc, int width_n, int height_n ) {
+tile_t * new_tile( const string& fileLoc, int width_n, int height_n ) {
 	tilePool.push_back( new tile_t( fileLoc, width_n, height_n ) );
 	return tilePool.back();
 }
 
-sprite_t * new_sprite( string fileLoc, int width_n ) {
+sprite_t * new_sprite( const string& fileLoc, int width_n ) {
 	spritePool.push_back( new sprite_t( fileLoc, width_n ) );
 	return spritePool.back();
 }
 
-tile_t * get_tile( string fileLoc ) {
+tile_t * get_tile( const string& fileLoc ) {
 	int i = 0;
 	for( ; i < tilePool.size(); ++i ){
 		if( tilePool[i] -> fileLocation() == fileLoc )
@@ -251,7 +252,7 @@ tile_t * get_tile( string fileLoc ) {
 	return 0;
 }
 
-sprite_t * get_sprite( string fileLoc ) {
+sprite_t * get_sprite( const string& fileLoc ) {
 	int i = 0;
 	for( ; i < spritePool.size(); ++i ){
 		if( spritePool[i] -> fileLocation() == fileLoc )
@@ -287,67 +288,155 @@ void clear_sprite(){
 }
 
 
-class Floor {
-public:
-	Floor( int map_width_, int map_height_ ) {
-		map_width = map_width_;
-		map_height = map_height_;
+enum MOD_T {
+	MOD_WANDERMAP,
+	MOD_BATTLEMAP,
+	MOD_MENU,
+	MOD_MAINMENU,
+	MOD_VISUALNOVEL
+};
 
-		FloorBoxes.resize( map_width_ * map_height_ );
+int chmod( MOD_T code ){
+
+}
+
+int chmod( MOD_T code, const string& target ){
+
+}
+
+
+
+class WanderMap {
+public:
+	void init() {
+		map_width = 0;
+		map_height = 0;
+
+		obs_data.fill( 1 );
 	}
 
-	Floor( const string& fileLoc ) {
+	WanderMap( const string& fileLoc ) {
+		init();
 		loadData( fileLoc );
 	}
 
-	~Floor(){
+	WanderMap() {
+		init();
+	}
+
+	~WanderMap(){
 	}
 
 	void draw( sf::RenderWindow& App ) {
 		assert( map_width * map_height == FloorBoxes.size() );
 
-		int coor_x, coor_y, index;
+		static int coor_x, coor_y, index;
+
+		//FLOORS LAST LAYER
+		index = 0;
+
 		for( coor_y = 0; coor_y < map_height; ++coor_y ){
 			for( coor_x = 0; coor_x < map_width; ++coor_x ){
-				FloorBoxes[ index ].tile -> draw(
-					App,
-					::camera_x + coor_x * gridsize,
-					::camera_y + coor_y * gridsize,
-					FloorBoxes[ index ].index_x,
-					FloorBoxes[ index ].index_y
-				);
+				if( FloorBoxes[ index ].tile != 0 ){
+					FloorBoxes[ index ].tile -> draw (
+						App,
+						::camera_x + coor_x * gridsize,
+						::camera_y + coor_y * gridsize,
+						FloorBoxes[ index ].index_x,
+						FloorBoxes[ index ].index_y
+					);
+				}
 
 				index++;
 			}
 		}
-	}
 
-private:
-	int map_width, map_height;
 
-	void parseData( ifstream& is ){
-		string line;
-		while( getline( is, line ) ){
-			if( *line.end() == 13 && line.size() > 0 ) line.resize(line.size()-1);
-//			if( tolower( line.substr( 0, 5 ) ) == ""
-		}
 	}
 
 	void loadData( const string& fileLoc ){
 		ifstream is;
-		is.open( fileLoc );
+		is.open( fileLoc.c_str(), ios::binary );
 
-		parseData( is );
+		string line;
+		vector<string> vstr;
+		vector<int> vint;
+		int index;
+		int limit_size;
+		int line_num = 0; //start counting from zero skip 1 for map width and height
+		
+		getline( is, line ); line_num++; 
+		limit_size = line_num + parseInt( line );
+
+		while( line_num < limit_size && getline( is, line ) ){
+			if ( line[line.size()-1] == 13 && line.size() > 0 ) line.resize(line.size()-1);
+
+			vstr = explode( ' ', line );
+			assert( vstr.size() >= 3 );
+			new_tile( vstr[0], parseInt( vstr[1] ), parseInt( vstr[2] ) );
+			
+			line_num++;
+		}
+		
+		getline( is, line ); line_num++;
+		limit_size = line_num + parseInt( line );
+		
+		while( line_num < limit_size && getline( is, line ) ){
+			if ( line[line.size()-1] == 13 && line.size() > 0 ) line.resize(line.size()-1);
+			vstr = explode( ' ', line );
+			assert( vstr.size() >= 2 );
+			new_sprite( vstr[0], parseInt( vstr[1] ) );
+
+			line_num++;
+		}
+
+		getline( is, line ); line_num++; 
+		vstr = explode(' ', line );
+
+		assert( vstr.size() >= 2 );
+
+		map_width = parseInt( vstr[0] );
+		map_height = parseInt( vstr[1] );
+
+		obs_data.resize( map_width, map_height );
+
+		limit_size = line_num + map_width * map_height;
+
+		while( line_num < limit_size && getline( is, line ) ){
+			if ( line[line.size()-1] == 13 && line.size() > 0 ) line.resize(line.size()-1);
+
+			if( line.size() >= 4 ){
+				if( tolower( line.substr(0,4) ) == "skip" ) {
+					FloorBoxes.push_back( FloorBox() );
+				} else {
+					vstr = explode( ' ', line );
+
+					FloorBoxes.push_back( FloorBox(
+						vstr[0],
+						parseInt(vstr[1]),
+						parseInt(vstr[2])
+					) );
+
+					obs_data[ line_num ] = 0;
+				}
+			}
+
+			line_num++;
+		}
 
 		is.close();
 	}
+
+private:
+
+	// =========== FLOOR ============
 
 	struct FloorBox {
 		tile_t * tile;
 		int index_x;
 		int index_y;
 
-		FloorBox( string fileLoc, int index_x = 0, int index_y = 0 ) {
+		FloorBox( const string& fileLoc, int index_x = 0, int index_y = 0 ) {
 			this -> index_x = index_x;
 			this -> index_y = index_y;
 
@@ -362,30 +451,41 @@ private:
 		}
 	};
 
+	// =========== END ============
+
+
+	// VARIABLES
+	int map_width;
+	int map_height;
+
+	Array2D<int> obs_data;
 	vector<FloorBox> FloorBoxes;
+
 };
 
-vector<Floor> FloorPool;
 
 struct Obstacle {
 	sprite_t * sprite;
 };
 
 int main() {
+
+//	cout << sizeof( sprite_t ) << " " << sizeof( tile_t ) << endl;
+//	new_sprite( "bbl.png", 15 );
+//	new_tile( "Outside_A2.png",16,12 );
+
+//	sprite_t * p;
+//	tile_t * p2;
+
+//	p = get_sprite( "bbl.png" );
+//	p2 = get_tile( "Outside_A2.png");
+
+	WanderMap WMAP;
+	WMAP.loadData("map.txt");
+
 	sf::RenderWindow window( sf::VideoMode( 1024, 768 ), "1.2" );
 	window.setFramerateLimit( FramePerSecond ); //max FPS
 
-	cout << sizeof( sprite_t ) << " " << sizeof( tile_t ) << endl;
-	new_sprite( "bbl.png", 15 );
-	new_tile( "Outside_A2.png",16,12 );
-
-	sprite_t * p;
-	tile_t * p2;
-
-	p = get_sprite( "bbl.png" );
-	p2 = get_tile( "Outside_A2.png");
-	
-	
 //	Floor Floor_1( "Outside_A2.png", 5,2, 9, 0 );
 
 	int ii = 0;
@@ -404,8 +504,9 @@ int main() {
 		window.clear( shiro );
 
 		//draw everything
-		p -> draw( window, 0,0, ii++ * 20 / FramePerSecond );
-		p2 -> draw( window, 85,0, 0, 0 );
+		WMAP.draw( window );
+//		p -> draw( window, 0,0, ii++ * 20 / FramePerSecond );
+//		p2 -> draw( window, 85,0, 0, 0 );
 
 		// Update the window
 		window.display();
