@@ -1,5 +1,5 @@
-<html><body>
-<canvas id=canvas width=500 height=500></canvas>
+<html><body bgcolor="black">
+<canvas id=canvas width=2000 height=500></canvas>
 <script>
 
 var ctx = document.getElementById("canvas").getContext("2d");
@@ -23,7 +23,19 @@ function dx( t1, t2, dt, d ){
 		//unexpected to happened
 		alert( t1+" "+t2+" "+dt+" "+d );
 	}
-}
+} //segitiga sama kaki 
+
+function dx2( t1, t2, dt, d ){
+	if( t2 < t1 ){
+		return dx( t2, t1,dt,d );
+	}else if( t1 < 0 ){
+		return dx( 0, t2,dt,d );
+	}else if( t2 > dt ){
+		return 0;
+	} else {
+		return d / dt / dt * ( Math.pow( dt-t1,2)  - Math.pow( dt-t2,2 ) );
+	}
+} //segitiga siku2
 
 var x = 0;
 
@@ -31,20 +43,32 @@ function main(){
 	//clear the screen
 //	canvas.width = canvas.width;
 
-	if( x >= 1000 ) return; 
-	y += dx( x, x+20, 1000, 300 );
+	if( x >= 300 ) return; 
+	y += dx( x*20, x*20+20, 1000, 300 );
 	
 	//draw the dot
 	ctx.fillStyle = "#FFF000";
-	ctx.fillRect( y, 110, 5, 100 );
+	ctx.fillRect( y, 110, 2, 100 );
+
+	y2 = ( x*6 <= 300 ? x*6 : 0 );
 	ctx.fillStyle = "#F0000F";
-	ctx.fillRect( x*2.6, 0, 5, 100);
+	ctx.fillRect( y2, 0, 2, 100);
+	
+	y3 += dx2( x*20, x*20+20, 1000, 300 );
+	//draw the dot
+	ctx.fillStyle = "#FF00FF";
+	ctx.fillRect( y3 , 220, 2, 100 );
+	
+	
+	//increment
 	x++;
 	
 	setTimeout( "main()", 20 );
 }
 
 window.onload = function(){
+	ctx.fillStyle = "#FFFFFF";
+	ctx.fillRect( 0,0,500,500 );
 	main(); 
 }
 
