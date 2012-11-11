@@ -408,7 +408,7 @@ namespace VN {
 		logs.push_back( _Log() );
 
 		while( getline( is, data ) ){
-			if( data.size() > 0 && data[ data.size() -1 ] == '\r' ) data.resize( data.size()-1 );
+			if( data.size() > 0 && data[ data.size() - 1 ] == '\r' ) data.resize( data.size()-1 );
 
 			index = 0;
 
@@ -569,7 +569,6 @@ namespace VN {
 			logs[log_index].exec();
 		}
 	}
-
 }
 
 int main(){

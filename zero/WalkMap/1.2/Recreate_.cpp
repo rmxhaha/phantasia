@@ -5,8 +5,13 @@
 #include <fstream>
 #include <cassert>
 #include <SFML/Graphics.hpp>
+
+
+/* To reduce compile time */
 #include "Array2D.cpp"
 #include "RString.cpp"
+#include "RImage.cpp"
+#include "RImage32.cpp"
 
 using namespace std;
 
@@ -15,277 +20,6 @@ const int FramePerSecond = 30;
 int camera_x = 0;
 int camera_y = 0;
 
-/* Prior Decleration */
-class image_t;
-class tile_t;
-class sprite_t;
-
-/* Pool for better access */
-vector<image_t *> imagePool;
-vector<tile_t *> tilePool;
-vector<sprite_t *> spritePool;
-
-class image_t {
-public:
-	image_t(){
-		fileLoaded = false;
-	}
-
-	image_t( string FL ){
-		fileLoc = FL;
-		fileLoaded = false;
-	}
-
-	~image_t(){
-
-	}
-
-	void load(){
-		if( fileLoaded == false ){
-
-			if( !texture.loadFromFile( fileLoc ) ){
-				cout << "ERR" << endl;
-			}
-
-			sprite.setTexture( texture );
-			fileLoaded = true;
-		}
-	}
-
-	void setFileLoc( string input ){
-		if( fileLoc.size() == 0 ){ //empty
-			fileLoc = input;
-		}
-	}
-
-	void draw_unsafe( sf::RenderWindow& App, int coor_x, int coor_y ){
-		sprite.setPosition( coor_x, coor_y );
-		App.draw( sprite );
-	}
-
-	void draw( sf::RenderWindow& App, int coor_x, int coor_y ){
-		//load the image it's not loaded
-		if( !fileLoaded ) load();
-
-		//just to make sure there is chance that it's not loaded by the load function
-		if( fileLoaded ){
-			draw_unsafe( App, coor_x, coor_y );
-		}
-	}
-
-	void setRect( sf::IntRect Rect ){
-		sprite.setTextureRect( Rect );
-	}
-
-	void reset(){
-		fileLoaded = false;
-		fileLoc.resize( 0 );
-		unload();
-	}
-
-	void unload(){
-		if( fileLoaded ){
-			texture.loadFromFile(""); //release it
-			fileLoaded = false;
-		}
-	}
-
-	bool loaded(){
-		return fileLoaded;
-	}
-
-	const string& fileLocation(){
-		return fileLoc;
-	}
-
-	int width(){
-		return texture.getSize().x;
-	}
-
-	int height(){
-		return texture.getSize().y;
-	}
-private:
-	bool fileLoaded;
-	string fileLoc;
-
-	sf::Sprite sprite;
-	sf::Texture texture;
-};
-
-image_t * get_image( const string& fileLoc ){
-	int i = 0;
-	for( ; i < imagePool.size(); ++i ){
-		if( imagePool[i] -> fileLocation() == fileLoc )
-			break;
-	}
-
-	if( i == imagePool.size() ){
-		imagePool.push_back( new image_t( fileLoc ) );
-		return imagePool.back();
-	} else {
-		return imagePool[i];
-	}
-}
-
-void flush_image(){
-	//erase all
-	for( int i = imagePool.size(); i--; ){
-		imagePool[i] -> unload();
-	}
-}
-
-class tile_t {
-public:
-	tile_t( image_t * Image, int dx = 1, int dy = 1 ) {
-		width = 0;
-		height = 0;
-		width_n = 0;
-		height_n = 0;
-
-		image = Image;
-		if( !image -> loaded() ) image -> load();
-		divide( dx, dy );
-	}
-
-	tile_t( string FL, int dx = 1, int dy = 1 ){
-		width = 0;
-		height = 0;
-		width_n = 0;
-		height_n = 0;
-
-		image = get_image( FL );
-		image -> load();
-		divide( dx, dy );
-	}
-
-	void divide( int _nx, int _ny ){
-		width_n = _nx;
-		height_n = _ny;
-		width = image -> width() / _nx;
-		height = image -> height() / _ny;
-	}
-
-	//make sure image is loaded
-	void draw( sf::RenderWindow& App, int _x, int _y, int index_x, int index_y ){
-		index_x %= width_n;
-		index_y %= height_n;
-		if( !image -> loaded() ) image -> load();
-
-		image -> setRect( sf::IntRect(index_x * width, index_y * height, width, height ) );
-		image -> draw( App, _x, _y );
-	}
-
-	void draw( sf::RenderWindow& App, int _x, int _y ){
-		if( !image -> loaded() ) image -> load();
-
-		image -> setRect( sf::IntRect( 0, 0, width, height ) );
-		image -> draw( App, _x, _y );
-	}
-
-	const string& fileLocation(){
-		return image -> fileLocation();
-	}
-
-private:
-	image_t * image;
-	int width;
-	int height;
-	int width_n;
-	int height_n;
-};
-
-class sprite_t {
-public:
-	sprite_t( image_t * Image, int _width_n ){
-		image = Image;
-		if( !image -> loaded() ) image -> load();
-
-		this -> width = image -> width() / width_n;
-		this -> width_n = width_n;
-	}
-
-	sprite_t( string FL, int width_n ){
-		image = get_image( FL );
-		image -> load();
-
-
-		this -> width = image -> width() / width_n;
-		this -> width_n = width_n;
-	}
-
-	void draw( sf::RenderWindow& App, int coor_x, int coor_y, int index = 0 ) {
-		index %= width_n;
-
-		image -> setRect( sf::IntRect( index * width, 0, width, image -> height() ) );
-		image -> draw( App, coor_x, coor_y );
-	}
-
-	const string& fileLocation(){
-		return image -> fileLocation();
-	}
-
-private:
-	int width;
-	int width_n;
-
-	image_t * image;
-};
-
-tile_t * new_tile( const string& fileLoc, int width_n, int height_n ) {
-	tilePool.push_back( new tile_t( fileLoc, width_n, height_n ) );
-	return tilePool.back();
-}
-
-sprite_t * new_sprite( const string& fileLoc, int width_n ) {
-	spritePool.push_back( new sprite_t( fileLoc, width_n ) );
-	return spritePool.back();
-}
-
-tile_t * get_tile( const string& fileLoc ) {
-	int i = 0;
-	for( ; i < tilePool.size(); ++i ){
-		if( tilePool[i] -> fileLocation() == fileLoc )
-			return tilePool[i];
-	}
-
-	return 0;
-}
-
-sprite_t * get_sprite( const string& fileLoc ) {
-	int i = 0;
-	for( ; i < spritePool.size(); ++i ){
-		if( spritePool[i] -> fileLocation() == fileLoc )
-			return spritePool[i];
-	}
-
-	return 0;
-}
-
-void clear_tile(){
-	for( int i = tilePool.size(); i--; ) {
-		//there is no need to clear image
-
-		//delete the resources
-		delete tilePool[i];
-	}
-
-	//clear the pointer
-	tilePool.clear();
-}
-
-void clear_sprite(){
-	for( int i = spritePool.size(); i--; ) {
-		//there is no need to clear image
-
-		//delete the resources
-		delete spritePool[i];
-	}
-
-	//clear the pointer
-	spritePool.clear();
-
-}
 
 
 enum MOD_T {
@@ -324,7 +58,7 @@ public:
 		init();
 	}
 
-	~WanderMap(){
+	~WanderMap() {
 	}
 
 	void draw( sf::RenderWindow& App ) {
@@ -351,6 +85,14 @@ public:
 			}
 		}
 
+		for( index = 0; index < Obstacles.size(); ++index ){
+			Obstacles[index].tile32 -> draw(
+				App,
+				Obstacles[index].x * gridsize,
+				Obstacles[index].y * gridsize,
+				0,	0
+			);
+		}
 
 	}
 
@@ -364,23 +106,23 @@ public:
 		int index;
 		int limit_size;
 		int line_num = 0; //start counting from zero skip 1 for map width and height
-		
-		getline( is, line ); line_num++; 
+
+		getline( is, line ); line_num++;
 		limit_size = line_num + parseInt( line );
 
 		while( line_num < limit_size && getline( is, line ) ){
-			if ( line[line.size()-1] == 13 && line.size() > 0 ) line.resize(line.size()-1);
+			if ( line[line.size()-1] == 13 && line.size() > 0 ) line.resize( line.size()-1 );
 
 			vstr = explode( ' ', line );
 			assert( vstr.size() >= 3 );
 			new_tile( vstr[0], parseInt( vstr[1] ), parseInt( vstr[2] ) );
-			
+
 			line_num++;
 		}
-		
+
 		getline( is, line ); line_num++;
 		limit_size = line_num + parseInt( line );
-		
+
 		while( line_num < limit_size && getline( is, line ) ){
 			if ( line[line.size()-1] == 13 && line.size() > 0 ) line.resize(line.size()-1);
 			vstr = explode( ' ', line );
@@ -390,7 +132,7 @@ public:
 			line_num++;
 		}
 
-		getline( is, line ); line_num++; 
+		getline( is, line ); line_num++;
 		vstr = explode(' ', line );
 
 		assert( vstr.size() >= 2 );
@@ -402,27 +144,71 @@ public:
 
 		limit_size = line_num + map_width * map_height;
 
+		index = 0;
+
 		while( line_num < limit_size && getline( is, line ) ){
 			if ( line[line.size()-1] == 13 && line.size() > 0 ) line.resize(line.size()-1);
 
-			if( line.size() >= 4 ){
-				if( tolower( line.substr(0,4) ) == "skip" ) {
-					FloorBoxes.push_back( FloorBox() );
-				} else {
-					vstr = explode( ' ', line );
+			if( tolower( line.substr(0,4) ) == "skip" ) {
+				FloorBoxes.push_back( FloorBox() );
 
-					FloorBoxes.push_back( FloorBox(
-						vstr[0],
-						parseInt(vstr[1]),
-						parseInt(vstr[2])
-					) );
+				obs_data[ index ] = 1;
+			} else {
+				vstr = explode( ' ', line );
 
-					obs_data[ line_num ] = 0;
-				}
+				FloorBoxes.push_back( FloorBox(
+					vstr[0],
+					parseInt(vstr[1]),
+					parseInt(vstr[2])
+				) );
+
+				obs_data[ index ] = 0;
 			}
 
 			line_num++;
+			index++;
 		}
+
+
+		getline( is, line ); line_num++;
+		limit_size = line_num + parseInt( line );
+
+		short x,y,lx,ly,ty;
+		while( line_num < limit_size && getline( is, line ) ){
+			if ( line[line.size()-1] == 13 && line.size() > 0 ) line.resize(line.size()-1);
+			vstr = explode( ' ', line );
+
+			assert( vstr.size() >= 3 );
+
+			x = parseInt( vstr[1] );
+			y = parseInt( vstr[2] );
+
+			//just being careful
+			assert( x == x % map_width );
+			assert( y == y % map_height );
+
+			Obstacles.push_back( Obstacle( vstr[0],x,y ) );
+			ty = y;
+			
+			lx = x + Obstacles.back().tile32 -> width32() ;
+			ly = y + Obstacles.back().tile32 -> height32();
+
+			for( ; x < lx; ++x ){
+				for( y = ty; y < ly; ++y ){
+					obs_data.get( x,y ) = 1;
+				}
+			}
+
+
+			line_num++;
+		}
+
+		/*
+		for( index = 0; index < obs_data.size(); ++index ){
+			if( index % map_width == 0 ) cout << endl;
+			cout << obs_data[index];
+		}
+		*/
 
 		is.close();
 	}
@@ -454,18 +240,43 @@ private:
 	// =========== END ============
 
 
+	// =========== FLOOR ============
+
+	struct Obstacle {
+
+		Obstacle( const string& fileLoc, short _x, short _y ) {
+			x = _x;
+			y = _y;
+			tile32 = get_tile32( fileLoc );
+		}
+
+		Obstacle( tile32_t * t, short _x, short _y ) {
+			x = _x;
+			y = _y;
+			tile32 = t;
+		}
+
+		short x,y;
+		tile32_t * tile32;		//One per image
+	};
+	
+	struct Hero {
+		Hero(){
+			
+		}
+		
+		sprite_t * sprite;
+	};
+
+	// =========== END ============
+
 	// VARIABLES
 	int map_width;
 	int map_height;
 
 	Array2D<int> obs_data;
 	vector<FloorBox> FloorBoxes;
-
-};
-
-
-struct Obstacle {
-	sprite_t * sprite;
+	vector<Obstacle> Obstacles;
 };
 
 int main() {
@@ -483,13 +294,14 @@ int main() {
 	WanderMap WMAP;
 	WMAP.loadData("map.txt");
 
-	sf::RenderWindow window( sf::VideoMode( 1024, 768 ), "1.2" );
+	sf::RenderWindow window( sf::VideoMode( 720, 480 ), "1.2" );
 	window.setFramerateLimit( FramePerSecond ); //max FPS
 
 //	Floor Floor_1( "Outside_A2.png", 5,2, 9, 0 );
 
 	int ii = 0;
 	const sf::Color shiro( 0xff,0xff,0xff );
+	const sf::Color kuro( 0x00,0x00,0x00 );
 
 	while ( window.isOpen() ){
 		// Process events
@@ -501,7 +313,7 @@ int main() {
 
 
 		// Clear screen
-		window.clear( shiro );
+		window.clear( kuro );
 
 		//draw everything
 		WMAP.draw( window );

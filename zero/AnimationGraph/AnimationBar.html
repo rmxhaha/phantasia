@@ -1,0 +1,52 @@
+<html><body>
+<canvas id=canvas width=500 height=500></canvas>
+<script>
+
+var ctx = document.getElementById("canvas").getContext("2d");
+
+y = 0, y2 = 0, y3 = 0;
+
+function dx( t1, t2, dt, d ){
+	if( t2 < t1 ){
+		return dx( t2, t1,dt,d );
+	}else if( t1 < 0 ){
+		return dx( 0, t2,dt,d );
+	}else if( t2 > dt ){
+		return 0;
+	}else if( t1 < dt/2 && dt/2 < t2 ){
+		return dx( t1,dt/2,dt,d ) + dx( dt/2, t2,dt,d );
+	}else if( t2 <= dt/2 ){
+		return 2 * d / dt / dt * ( t2*t2 - t1*t1 );
+	}else if( t1 >= dt/2 ){
+		return dx( dt - t2, dt -t1, dt, d );
+	}else{
+		//unexpected to happened
+		alert( t1+" "+t2+" "+dt+" "+d );
+	}
+}
+
+var x = 0;
+
+function main(){
+	//clear the screen
+//	canvas.width = canvas.width;
+
+	if( x >= 1000 ) return; 
+	y += dx( x, x+20, 1000, 300 );
+	
+	//draw the dot
+	ctx.fillStyle = "#FFF000";
+	ctx.fillRect( y, 110, 5, 100 );
+	ctx.fillStyle = "#F0000F";
+	ctx.fillRect( x*2.6, 0, 5, 100);
+	x++;
+	
+	setTimeout( "main()", 20 );
+}
+
+window.onload = function(){
+	main(); 
+}
+
+
+</script></body></html>
