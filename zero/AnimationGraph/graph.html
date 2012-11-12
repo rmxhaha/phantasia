@@ -38,8 +38,7 @@ function dx2( t1, t2, dt, d ){
 
 for( x = 0; x < 10000; ++x ){
 	y += dx2( x, x+1, 1000, 999 );
-	
-	
+		
 	ctx.fillStyle = "#FF0000";
 	ctx.fillRect(x,y,2,2);
 }
