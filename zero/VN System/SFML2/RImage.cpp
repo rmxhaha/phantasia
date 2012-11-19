@@ -117,8 +117,7 @@ private:
 };
 
 image_t * get_image( const string& fileLoc ){
-	int i = 0;
-	for( ; i < imagePool.size(); ++i ){
+	for( int i = 0; i < imagePool.size(); ++i ){
 		if( imagePool[i] -> fileLocation() == fileLoc )
 			return imagePool[i];
 	}

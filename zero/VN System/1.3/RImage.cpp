@@ -22,12 +22,14 @@ vector<sprite_t *> spritePool;
 class image_t {
 public:
 	image_t(){
-		fileLoaded = false;
+		resLoaded = false;
+		resNeeded = false;
 	}
 
 	image_t( const string& FL ){
 		fileLoc = FL;
-		fileLoaded = false;
+		resLoaded = false;
+		resNeeded = false;
 	}
 
 	~image_t(){
@@ -35,14 +37,14 @@ public:
 	}
 
 	void load(){
-		if( fileLoaded == false ){
+		if( resLoaded == false ){
 
 			if( !texture.loadFromFile( fileLoc ) ){
 				cout << "ERR" << endl;
 			}
 
 			sprite.setTexture( texture );
-			fileLoaded = true;
+			resLoaded = true;
 		}
 	}
 
@@ -59,36 +61,60 @@ public:
 
 	void draw( sf::RenderWindow& App, int coor_x, int coor_y ){
 		//load the image it's not loaded
-		if( !fileLoaded ) load();
-
+		if( !resLoaded ){
+			cout << "ABERRATION : You forgot to ManageImage()" << endl;
+			cout << "ASSUMPTION : Load the image" << endl;
+			
+			load();
+		}
+		
 		//just to make sure there is chance that it's not loaded by the load function
-		if( fileLoaded ){
+		if( resLoaded ){
 			draw_unsafe( App, coor_x, coor_y );
 		}
 	}
 
 	void setRect( sf::IntRect Rect ){
 		//load the image it's not loaded
-		if( !fileLoaded ) load();
+		if( !resLoaded ) load();
 
 		sprite.setTextureRect( Rect );
 	}
 
+	void setOpacity( unsigned int opacity ){
+		if( opacity > 100 ){
+			cout << "ABERRATION : Opacity cannot be more than 100%" << endl;
+			cout << "ASSUMPTION : Opacity is 100%" << endl;
+
+			opacity = 100;
+		}
+
+		sprite.setColor( sf::Color( 0xff,0xff,0xff, opacity * 256 / 100 ) );
+	}
+
 	void reset(){
-		fileLoaded = false;
+		resLoaded = false;
 		fileLoc.resize( 0 );
 		unload();
 	}
 
 	void unload(){
-		if( fileLoaded ){
+		if( resLoaded ){
 			texture.loadFromFile(""); //release it
-			fileLoaded = false;
+			resLoaded = false;
 		}
 	}
 
 	bool loaded(){
-		return fileLoaded;
+		return resLoaded;
+	}
+
+	bool needed(){
+		return resNeeded;
+	}
+
+	void needed( bool p ){
+		resNeeded = p;
 	}
 
 	const string& fileLocation(){
@@ -97,28 +123,46 @@ public:
 
 	int width(){
 		//load the image it's not loaded
-		if( !fileLoaded ) load();
+		if( !resLoaded ) load();
 
 		return texture.getSize().x;
 	}
 
 	int height(){
 		//load the image it's not loaded
-		if( !fileLoaded ) load();
+		if( !resLoaded ) load();
 
 		return texture.getSize().y;
 	}
+
+
 private:
-	bool fileLoaded;
+	bool resLoaded;
+	bool resNeeded;
 	string fileLoc;
 
 	sf::Sprite sprite;
 	sf::Texture texture;
 };
 
+void ResetImageNeeds(){
+	for( int i = 0; i < imagePool.size(); ++i ){
+		imagePool[i] -> needed( false );
+	}
+}
+
+void ManageImage(){
+	for( int i = 0; i < imagePool.size(); ++i ){
+		if( imagePool[i] -> needed() ) {
+			imagePool[i] -> load();
+		} else {
+			imagePool[i] -> unload();
+		}
+	}
+}
+
 image_t * get_image( const string& fileLoc ){
-	int i = 0;
-	for( ; i < imagePool.size(); ++i ){
+	for( int i = 0; i < imagePool.size(); ++i ){
 		if( imagePool[i] -> fileLocation() == fileLoc )
 			return imagePool[i];
 	}

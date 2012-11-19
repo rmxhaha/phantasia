@@ -1,0 +1,11 @@
+charl:
+//resource/Dungeon1.ogg
+charl:  what   do   you   want?    :resource/A.png:2
+john:I want some potion !:resource/B.png:2
+charl:I don't have any !:resource/A.png:2:resource/A.png:3:resource/Quake.ogg:resource/Quake.ogg:resource/Wind.ogg:resource/Quake.ogg
+
+smith:
+smith:are you blind ?
+john:are you not ?
+smith:are you blind ?
+john:he is akward I should ignore him:resource/Quake.ogg

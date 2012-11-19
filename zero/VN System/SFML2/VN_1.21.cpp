@@ -51,12 +51,15 @@ char tolower( char input ) {
 	return input;
 }
 
-string tolower( string input ){
+string tolower( const string& input ){
+	string output;
+	output.resize( input.size() );
+	
 	for( int i = input.length(); i--; ){
-		input[i] = tolower( input[i] );
+		output[i] = tolower( input[i] );
 	}
 
-	return input;
+	return output;
 }
 
 int parseInt( const string& input ){
@@ -85,18 +88,20 @@ vector < string > explode(char sep, string s) {
 namespace VN {
 	class _Log;
 	int log_index = 0;
+
 	int soundFx_index = 0;
 	float char_width[ 256 ];
 	const float log_width = 1750;
 	const float music_volume = 60.f;
 	float music_volume_ = music_volume;
-
+	
 	sf::Music soundFx, Music;
 	sf::Texture log_texture;
 	sf::Sprite log_back;
-
+	
 	vector< sf::Texture > texture_;
 	vector< sf::Sprite > sprite_;
+	
 	map< int, string > Music_queue;
 
 	vector<_Log> logs;
@@ -476,7 +481,6 @@ namespace VN {
 			cout << logs[i].text << endl;
 		}
 	}
-
 
 	// ============================= INIT OPERATION =============================
 

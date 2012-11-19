@@ -1,0 +1,16 @@
+variabel:
+	int * a = new int;
+	int b;
+
+
+operasi:
+	a = (int *)( &b );
+	b = (int)&a;
+	b = (int)a;
+	a = (int *)b;
+	*a = b;
+	*b = a;
+
+Tentukan mana saja operasi yang compile error ?
+Tentukan mana saya operasi yang dianggap dapat membuahkan masalah ?
+Di harapkan pertanyaan di jawab tanpa mengunakan bantuan komputer

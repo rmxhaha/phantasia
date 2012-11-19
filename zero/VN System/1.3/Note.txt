@@ -1,0 +1,23 @@
+Better Word Wrap
+Re Writting the whole thing for better management
+Using the Image Management
+CG Display
+New Parsing system
+
+
+Parsing Pattern
+SceneName:
+//Music.ogg
+Name:Text:A.jpg:2:sfx.ogg:2.jpg
+
+Todo List :
+
+saving screenshot
+saving scene system
+log_cg management
+adaptation with chmod
+Player stat
+Database for Items
+Items with chmod
+Market with chmod
+Kaskus

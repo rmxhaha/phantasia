@@ -150,7 +150,7 @@ function main(){
 	ctx.fillStyle = "#FFFFFF";
 	ctx.fillRect( 0,0, canvas.width, canvas.height );
 
-	y += dx( x*20, x*20+20, 1000, 600 );
+	y = dx( 0, ( x <= 50 ? x*20 : 1000 ), 1000, 600 );
 	
 	//draw the dot
 	ctx.fillStyle = "#FFF000";
@@ -160,17 +160,17 @@ function main(){
 	ctx.fillStyle = "#F0000F";
 	ctx.fillRect( y2, 10, 100, 100);
 	
-	y3 += dx2( x*20, x*20+20, 1000, 600 );
+	y3 = dx2( 0, ( x <= 50 ? x*20 : 1000 ), 1000, 600 );
 	//draw the dot
 	ctx.fillStyle = "#FF00FF";
 	ctx.fillRect( y3 , 450, 100, 100 );
 	
-	y4 += dx3( x*20, x*20+20, 1000, 600 );
+	y4 = dx3( 0, ( x <= 50 ? x*20 : 1000 ), 1000, 600 );
 	//draw the dot
 	ctx.fillStyle = "#00FF00";
 	ctx.fillRect( y4 , 340, 100, 100 );
 
-	y5 += dxplus( x*20, x*20+20, 1000, 600, 0.8 );
+	y5 = dxplus( 0, ( x <= 50 ? x*20 : 1000 ), 1000, 600, 0.8 );
 	//draw the dot
 	ctx.fillStyle = "#00FFF0";
 	ctx.fillRect( y5 , 230, 100, 100 );

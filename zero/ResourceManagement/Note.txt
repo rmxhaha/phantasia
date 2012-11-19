@@ -1,0 +1,2 @@
+Kind Reminder that all the image files in this folder are only used for testing nothing will be used on the production line.
+So don't worry I don't take your artwork for granted

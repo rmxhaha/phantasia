@@ -1,0 +1,97 @@
+LEVEL 1:
+1.1 -> Buat program dengan input 1 buah kata dan output hal yang sama
+
+LEVEL 2:
+2.1 -> 
+		Buat program dengan input
+		T -> Jumlah Testcase
+		T[i] -> Input ( Integer )
+		output tuliskan angka input lalu kali 2
+
+2.2
+	-> Input A,B
+	-> Liat Contoh exe nya dan lakukan asumsi akan hubungan a dan b
+
+LEVEL 3:
+
+Untuk 3.1 dan 3.2
+	-> Coba Input 1 kata yang tidak harus ada artinya tetapi harus antara a-z seperti "afjeiwjfiawe[fewfp"
+3.1
+	-> Urutkan karakter dalam kata tersebut dalam urutan a-z ( liat contoh exe kalo gak ngerti )
+3.2
+	-> Urutkan karakter dalam kata tersebut dalam urutan z-a ( liat contoh exe kalo gak ngerti )
+3.3
+	-> 
+		Input T1 ( Jumlah Test Case pertama )
+		A adalah string
+		B adalah integer
+		
+		Input A[i] dan B[i] sebanyak T1
+		
+		Input T2 ( Jumlah Test case kedua )
+		C adalah string
+		
+		Input C dan outputkan B diamana A[i] == C sebanyak T2
+		
+LEVEL 4:
+4.1
+	->
+		di beritahu bahwa ada satu fungsi matematika bernama f()
+		isi fungsi ini adalah
+
+		unsigned int f( unsigned int p ){
+			if( p == 0 ) return 0;
+			if( p == 1 ) return 1;
+			
+			return f( p - 1 ) + f( p - 2 );
+		}
+		
+		fungsi diatas mengunakan pendekatan rekursi
+		karena pendekatan rekursi lambat dan fungsi ini dapat di tuliskan dalam bentuk iteratif
+		
+		maka buatlah fungsi iteratif dari fungsi f diatas
+4.2
+	-> Coba input 1 integer pada exe yang tersedia
+	-> Cari tahu cara melakukan output tersebut
+	-> Note : Pengunaan rekursi di anjurkan tetapi tidak diharuskan
+
+LEVEL 5:
+	-> Jawablah soal pada level5.txt
+
+LEVEL 6:
+	->
+		buatlah 1 class seperti di bawah ini
+		
+		class person {
+		public:
+			person( short id, short age, short fatherid, short motherid, short x, short y);
+		
+			unsigned short getId();
+			unsigned short getAge(); 
+			unsigned short getFatherId() ;
+			unsigned short getMotherId() ;
+			short getLocationX() ;
+			short getLocationY() ;
+		private:
+			/* variabel */
+		};
+	
+	
+		anda di perbolehkan maksimal mengunakan 64 bit data alias 8 byte
+		gunakan semaksimal mungkin
+
+		fungsi yang di perlukan
+		unsigned short getId(); [ 0..9999 ]
+		unsigned short getAge(); [ 0..199 ]
+		unsigned short getFatherId() [ 0..9999 ]
+		unsigned short getMotherId() [ 0..9999 ]
+		short getLocationX() [ -190..189 ]
+		short getLocationY() [ -190..189 ]
+
+		yang ada di dalam kurung adalah range data variabel
+		
+		untuk membantu masukan kode di bawah pada main untuk memastikan bahwa besar class person tidak lebih besar dari 8 byte:
+		
+		if( sizeof( person ) > 8 ){
+			cout << "Data Struct person kebesaran !" << endl;
+		}
