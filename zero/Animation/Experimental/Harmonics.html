@@ -1,0 +1,29 @@
+<html>
+<body>
+<canvas width=1000 height=1000 id=canvas></canvas>
+
+<script>
+
+var ctx = document.getElementById("canvas").getContext("2d");
+
+var p = 500;
+
+function dsin( t1, t2, dt, am ){
+	omega = Math.PI * 2 / dt;
+	p += am * ( Math.sin( t2 * omega ) - Math.sin( t1 * omega ) );
+	
+	ctx.fillStyle = "#FFFFFF";
+	ctx.fillRect( 0,0, canvas.width, canvas.height );
+
+	//draw the dot
+	ctx.fillStyle = "#FFF000";
+	ctx.fillRect( p, 120, 100, 100 );
+}
+
+for( i = 0; i < 100; i++ ){
+	setTimeout( "dsin("+( i * 20 )+","+( i * 20 + 20 )+",2000,200)", i * 20 );
+}
+
+</script>
+</body>
+</html>

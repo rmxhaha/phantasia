@@ -1,0 +1,6 @@
+Change BFS to Floodfill method for faster shortest path search
+class the entity
+Array2D For Dynamic array
+1 entity can locate more than 1 cell ( square or rectangle )
+entity chase hero within line of sight
+entity came back to anchor point if hero is too far

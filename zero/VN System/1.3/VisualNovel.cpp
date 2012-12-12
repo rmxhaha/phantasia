@@ -13,36 +13,71 @@
 
 using namespace std;
 
+// screen settings
 const float WINDOW_WIDTH = 1280.f;
 const float WINDOW_HEIGHT = 720.f;
+const float MUSIC_VOLUME = 60.f;
 
 sf::Music SoundMusic;
+// Note : 	Keep the Music global 
+//			cause there will only be one music at a time
+
+void main_resource_init(){
+	SoundMusic.setVolume( MUSIC_VOLUME );
+}
+
 
 namespace VisualNovel {
 	// =================== CLASS DECLERATION ===================
+	
+	/*
+	log_t
+		used to contain Visual Novel's Frame information
+
+		such as :
+		-> name
+		-> text
+		-> image paths and alignments
+		-> soundFx path
+	*/
 	class log_t {
 	public:
-		log_t(){}
+		log_t(){ cleaned = false; }
 		~log_t(){}
 
-		string name;
-		string text;
+		string name; // Name of the person talking
+		string text; // The person's dialogue
 
-		string music_path; //leave it blank if there aren't any
+		string music_path;
+		string CG_path;
+		// Note : leave it blank if there aren't any
 
-		vector<string> image_path;
-		vector<int> image_align;
-		vector<string> soundFx_path;
-
+		vector<string>	image_path;		// Characters images' URL
+		vector<int>		image_align;	// Image alignment ( 5 )
+		vector<string>	soundFx_path;	// Sound Effects' URL
+		// Note : Will be played in a queue
+		
+		bool cleaned;
+		// Note : please don't change this var from outside unless necesary
+		
+		// clean messy text coming from the writers
 		void clean()
 		{
-			clean_name();
-			clean_log_text();
-			clean_path();
+			if( !cleaned ) {
+				clean_name();
+				clean_log_text();
+				clean_path();
+				
+				cleaned = true;
+			}
 		}
+		// Note : cleaning twice will cause even more messy text so don't
+		
 
 	private:
 
+		// cleaning method for URL only
+		// Note : This function is made to keep things DRY
 		void clean_path_( string& input )
 		{
 			if( input.length() == 0 ) return;
@@ -101,7 +136,7 @@ namespace VisualNovel {
 			} else {
 				name.resize( write_index );
 			}
-
+			
 			if( tolower( name ) == "narator" ) name = tolower( name );
 		}
 
@@ -197,18 +232,28 @@ namespace VisualNovel {
 			}
 
 			clean_path_( music_path );
+			clean_path_( CG_path );
 		}
 	};
 
 	struct scene_t {
-		vector< log_t > log_array;
+		vector< log_t > log_array; // logs
 
 		int limit() const {
 			return log_array.size();
 		}
 	};
 
-	struct log_char_image_t{
+	/*
+	log_char_image_t
+		contains image's alignment and images' resource
+
+	Note : 	Every time the player moves to a different frame 
+			information from log_t::image_path will be processed here
+			so it useable by "draw" function
+	*/
+	
+	struct log_char_image_t {
 		int x;
 		image_t * image;
 
@@ -222,6 +267,8 @@ namespace VisualNovel {
 			image = get_image( fileLoc );
 
 			align %= 5;
+
+			//divide frame by 5
 			x = (float) align * WINDOW_WIDTH / 5.f;
 		}
 
@@ -254,11 +301,11 @@ namespace VisualNovel {
 	sf::Music SoundFx;
 
 	/* Log Coordination settings */
-	const float log_x = 55;
-	const float log_y = 570;
-	const float log_padding_x = 40;
-	const float log_padding_y = 10;
-	const float log_to_name_y = 12;
+	const float log_x = 55.f;
+	const float log_y = 570.f;
+	const float log_padding_x = 40.f;
+	const float log_padding_y = 10.f;
+	const float log_to_name_y = 12.f;
 
 	image_t * log_background = 0;
 
@@ -267,8 +314,8 @@ namespace VisualNovel {
 	vector<log_char_image_t> 	log_char_image;
 	queue<string *> 			sound_queue;
 
-	string log_text;
-	string log_name;
+	string log_text;	// dialogue showing on the screen
+	string log_name;	// name showing on the screen
 
 	// ======================= END =============================
 
@@ -276,13 +323,19 @@ namespace VisualNovel {
 
 	/*
 		PRIVATE function are not supposed to be called from outside VisualNovel namespace
-		even though it's accessible from global it can lead to errors
+		even though it's accessible from global.
+		it can lead to errors if called
 	*/
 	void Init(){
+		//get the image for the text's background
 		log_background = get_image( "resource/LogBackground.png" );
 
+		//set the volume to the default global volume
+		SoundFx.setVolume( MUSIC_VOLUME ); 
+				
 		static bool loaded = false;
-		if( !loaded ){
+		if( !loaded ) //to prevent double calling
+		{
 			font_display.loadFromFile( "resource/PTN57F.ttf" );
 
 			log_text_display.setFont( font_display );
@@ -298,60 +351,69 @@ namespace VisualNovel {
 	}
 
 	void wordwrap(){
+		//divide the sentence into words
 		vector< string > words = explode( ' ', log_text );
 		vector< bool > newline( words.size() );
 
-		int width = log_x + log_background -> width() - log_padding_x * 2;
+		int limit_right = log_x + log_background -> width() - log_padding_x * 2;
 
-		for( int index = 0; index < words.size(); ++index ){
+		for( unsigned index = 0; index < words.size(); ++index ){
 
 			log_text.clear();
 
-			for( int i = 0; i <= index; i++ ){
+			for( unsigned i = 0; i <= index; i++ ){
 				log_text += words[i] + ( newline[ i ] ? '\n' : ' ' );
 			}
 
 			log_text_display.setString( log_text );
 
-			if( log_text_display.findCharacterPos( log_text.size() ).x >= width ){
+			if( log_text_display.findCharacterPos( log_text.size() ).x >= limit_right ){
 				newline[ index - 1 ] = true;
 			}
 		}
 
 		log_text.clear();
 
-		for( int i = 0; i < words.size(); i++ ){
+		for( unsigned i = 0; i < words.size(); i++ ){
 			log_text += words[i] + ( newline[ i ] ? '\n' : ' ' );
 		}
 	}
 
 	/*
-		All "Manage" Function is called everytime NextLog is called
-		All Manage Function are the function that are used for managing the log resources ( images, sounds, text )
+		All "Manage" Function is called everytime "NextLog" is called
+		All "Manage" Function are Function used for managing the log resources ( images, sounds, text )
 	*/
 
 	void ManageText(){
-		wordwrap(); //setString is included inside this function
+		wordwrap(); 
+		log_text_display.setString( log_text );
 		log_name_display.setString( log_name );
 	}
 
 	void ManageImage(){
-		assert( now_log != 0 );
-
+		assert( now_log != 0 ); // null pointer is unexceptable and there is no solution
+		
 		log_char_image.resize( now_log -> image_path.size() );
-
+		
+		if( now_log -> CG_path.size() != 0 )
+			log_CG = get_image( now_log -> CG_path );
+		
 		for( int i = 0; i < now_log -> image_path.size(); ++i ){
 			log_char_image[i].init( now_log -> image_path[i], now_log -> image_align[i] );
 		}
 
 	}
 
-	void ManageSound(){
-		assert( now_log != 0 );
+	void ManageSound() {
+		assert( now_log != 0 ); // null pointer is unexceptable and there is no solution
 
-		while( !sound_queue.empty() ) sound_queue.pop();
+		//stop whatever Sound Effect playing right now
+		SoundFx.stop();
+		
+		//empty the queue if there is still any member on the queue
+		while( !sound_queue.empty() ) sound_queue.pop(); 
 
-		for( int i = 0; i < now_log -> soundFx_path.size(); ++i ){
+		for( unsigned i = 0; i < now_log -> soundFx_path.size(); ++i ){
 			sound_queue.push( &(now_log->soundFx_path[i]) );
 		}
 		if( now_log -> music_path.size() != 0 ){
@@ -359,11 +421,15 @@ namespace VisualNovel {
 		}
 	}
 
-	void ManageLog(){
-		assert( now_log != 0 );
+	
+	void ManageLog()
+	{
+		assert( now_log != 0 ); // null pointer is unexceptable and there is no solution
 
 		//clean everything text first
 		now_log -> clean();
+		// Note : 	log should only be cleaned once
+		//			error  to keep you from doing it twice has already been set
 
 		log_name = now_log -> name;
 		log_text = now_log -> text;
@@ -432,7 +498,7 @@ namespace VisualNovel {
 
 		if( log_CG != 0 )
 			log_CG -> needed( true );
-
+		
 		for( int i = 0; i < log_char_image.size(); ++i )
 			log_char_image[i].image -> needed( true );
 	}
@@ -452,7 +518,7 @@ namespace VisualNovel {
 		}
 	}
 
-	void ActiveScene( const string& scene_name ){
+	void ActivateScene( const string& scene_name ){
 		now_scene = &scenes[ scene_name ];
 		assert( now_scene -> log_array.size() != 0 );
 		log_index = 0;
@@ -493,14 +559,28 @@ namespace VisualNovel {
 		scene_t * scn = 0;
 		string line;
 		string music_path;
+		string CG_path;
 
 		while( getline( file, line ) ){
 			if( line.size() > 0 && line[ line.size() - 1 ] == '\r' ) line.resize( line.size()-1 );
 
 			if( tolower( line.substr( 0, 2 ) == "//" ) ){
 				assert( scn != 0 );
+				string temporary = line.substr( 2 );
 
-				music_path = line.substr( 2 );
+				switch( ext( temporary ) ){
+					case IMAGE_EXTENSION:
+						CG_path = temporary;
+						break;
+					case SOUND_EXTENSION:
+						music_path = temporary;
+						break;
+					default:
+						cerr << "WARNING : PARSER DOESN'T KNOW WHAT TO DO WITH THIS LINE BELLOW" << endl;
+						cerr << "          " << line << endl;
+						break;
+				}
+				
 			} else {
 				array = explode( ':', line );
 
@@ -521,6 +601,12 @@ namespace VisualNovel {
 
 						//remove it after copy
 						music_path.clear();
+					}
+					
+					if( CG_path.size() != 0 ){
+						scn -> log_array.back().CG_path = CG_path;
+						
+						CG_path.clear();
 					}
 
 					int i = 0;
@@ -598,12 +684,13 @@ namespace VisualNovel {
 
 
 int main( int argc, char ** argv ){
+	main_resource_init();
 	cout << sizeof( VisualNovel::log_t ) << endl;
 
 	VisualNovel::Init();
 	VisualNovel::ParseText( "textone.vns" );
 	VisualNovel::PrintLog();
-	VisualNovel::ActiveScene( "charl" );
+	VisualNovel::ActivateScene( "siri" );
 	VisualNovel::DeclareImageNeeds();
 	ManageImage();
 

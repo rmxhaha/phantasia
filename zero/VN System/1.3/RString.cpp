@@ -46,9 +46,14 @@ string tolower( const string& input ){
 	return output;
 }
 
+//convert string to int
 int parseInt( const string& input ){
 	return atoi( input.c_str() );
 }
+
+// Divide string by a seperator
+// Note : 	The Most common use for this one is
+//			Dividing a sentence by space to get an array of words
 
 vector < string > explode( char sep, const string& s ) {
 	vector < string > f;

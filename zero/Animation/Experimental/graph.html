@@ -1,0 +1,46 @@
+<html><body>
+<canvas id=canvas width=10000 height=1000></canvas>
+<script>
+var ctx = document.getElementById("canvas").getContext("2d");
+
+y = 0, y2 = 0, y3 = 0;
+
+function dx( t1, t2, dt, d ){
+	if( t2 < t1 ){
+		return dx( t2, t1,dt,d );
+	}else if( t1 < 0 ){
+		return dx( 0, t2,dt,d );
+	}else if( t2 > dt ){
+		return 0;
+	}else if( t1 < dt/2 && dt/2 < t2 ){
+		return dx( t1,dt/2,dt,d ) + dx( dt/2, t2,dt,d );
+	}else if( t2 <= dt/2 ){
+		return 2 * d / dt / dt * ( t2*t2 - t1*t1 );
+	}else if( t1 >= dt/2 ){
+		return dx( dt - t2, dt -t1, dt, d );
+	}else{
+		//unexpected to happened
+		alert( t1+" "+t2+" "+dt+" "+d );
+	}
+}
+
+function dx2( t1, t2, dt, d ){
+	if( t2 < t1 ){
+		return dx( t2, t1,dt,d );
+	}else if( t1 < 0 ){
+		return dx( 0, t2,dt,d );
+	}else if( t2 > dt ){
+		return 0;
+	} else {
+		return 2 * d / dt / dt * ( dt-t2*dt-t2 - t1*t1);
+	}
+} //segitiga siku2
+
+for( x = 0; x < 10000; ++x ){
+	y += dx2( x, x+1, 1000, 999 );
+		
+	ctx.fillStyle = "#FF0000";
+	ctx.fillRect(x,y,2,2);
+}
+
+</script></body></html>

@@ -14,6 +14,7 @@ Todo List :
 
 saving screenshot
 saving scene system
+screen shot for battle scene and walk map scene and blurring algorithm so that if mod is changed, not the blurred screen shot will be displayed as a background if there aren't any
 log_cg management
 adaptation with chmod
 Player stat

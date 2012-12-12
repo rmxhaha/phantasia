@@ -1,8 +1,13 @@
-charl:
+siri:
 //resource/Dungeon1.ogg
-charl:  what   do   you   want?    :resource/A.png:2
-john:I want some potion !:resource/B.png:2
-charl:I don't have any !:resource/A.png:2:resource/A.png:3:resource/Quake.ogg:resource/Quake.ogg:resource/Wind.ogg:resource/Quake.ogg
+//resource/Apple_Wallpaper_Template_by_my_nightmare_reborn.jpg
+Siri:  Can   I    help  you ?    :resource/A.png:2
+John:I want some potion !:resource/B.png:2
+Siri:I am sorry but I don't have any !:resource/A.png:2:resource/A.png:3:resource/Quake.ogg:resource/Quake.ogg:resource/Wind.ogg:resource/Quake.ogg
+Siri:But I have some apple product which doesn't really suited for their prices and I am selling it to you my buyers with this amazingly high prices
+John:I think I will buy them with their ridiculous price because you will be a service to me, aren't you ?
+Siri:Yes, I will...
+Text Test:a b c d e f g h i j k l m n o p q r s t u v w x y z a b c d e f g h i j k l m n o p q r s t u v w x y z a b c d e f g h i j k l m n o p q r s t u v w x y z a b c d e f g h i j k l m n o p q r s t u v w x y z a b c d e f g h i j k l m n o p q r s t u v w x y z a b c d e f g h i j k l m n o p q r s t u v w x y z a b c d e f g h i j k l m n o p q r s t u v w x y z a b c d e f g h i j k l m n o p q r s t u v w x y z 
 
 smith:
 smith:are you blind ?

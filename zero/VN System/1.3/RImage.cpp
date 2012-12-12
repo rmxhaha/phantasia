@@ -19,6 +19,15 @@ vector<image_t *> imagePool;
 vector<tile_t *> tilePool;
 vector<sprite_t *> spritePool;
 
+/*
+	class image_t
+		Used for keeping the image singularity. So there won't be any duplicate
+		"get_image" is used for this capability of not having any duplicate image resources in the program
+		
+		using a pointer like this one bellow
+		image_t * p = get_image( fileLocation );
+		is recommended
+*/
 class image_t {
 public:
 	image_t(){
@@ -145,11 +154,28 @@ private:
 	sf::Texture texture;
 };
 
+/*
+	ResetImageNeeds
+		Called change of mode is occuring
+		This function resets the needs of image resources
+		
+		Note : Declare the needs after the resets
+		
+		"ManageImage" must be called after all the image necesity are declared
+*/
+
 void ResetImageNeeds(){
 	for( int i = 0; i < imagePool.size(); ++i ){
 		imagePool[i] -> needed( false );
 	}
 }
+
+/*
+	ManageImage
+		Called after all needs are declared
+		This function unload all unnecessary image resources
+		and loads necessary image resources that haven't been loaded to memory
+*/
 
 void ManageImage(){
 	for( int i = 0; i < imagePool.size(); ++i ){
@@ -161,6 +187,12 @@ void ManageImage(){
 	}
 }
 
+/*
+	"get_image" will find the images of the url if there is any.
+	Basiclly, get_image function will return you a pointer address of an image_t
+	from the array ( vectorPool ) to prevent image resource duplication.
+*/
+
 image_t * get_image( const string& fileLoc ){
 	for( int i = 0; i < imagePool.size(); ++i ){
 		if( imagePool[i] -> fileLocation() == fileLoc )
@@ -171,8 +203,13 @@ image_t * get_image( const string& fileLoc ){
 	return imagePool.back();
 }
 
+/*
+	"flush_image" erases all the resources
+	this function shouldn't not be used unless it's a special case where this is necessary
+	use "ManageImage" instead for common use
+*/
+
 void flush_image(){
-	//erase all
 	for( int i = imagePool.size(); i--; ){
 		imagePool[i] -> unload();
 	}

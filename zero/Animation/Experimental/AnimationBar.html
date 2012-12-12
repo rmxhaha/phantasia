@@ -1,0 +1,191 @@
+<html>
+<body bgcolor="black">
+	<canvas id=canvas width=800 height=600></canvas>
+
+<script>
+
+var ctx = document.getElementById("canvas").getContext("2d");
+
+function dx( t1, t2, dt, d ){
+	if( t2 < t1 ){
+		return dx( t2, t1,dt,d );
+	} else if( t1 < 0 ) {
+		return dx( 0, t2,dt,d );
+	} else if( t2 > dt ) {
+		return 0;
+	} else if( t1 < dt / 2 && dt / 2 < t2 ) {
+		return dx( t1,dt / 2,dt,d ) + dx( dt / 2, t2,dt,d );
+	} else if( t2 <= dt / 2 ) {
+		return 2 * d / dt / dt * ( t2*t2 - t1*t1 );
+	} else if( t1 >= dt / 2 ) {
+		return dx( dt - t2, dt -t1, dt, d );
+	}else{
+		//unexpected to happened
+		alert( t1+" "+t2+" "+dt+" "+d );
+	}
+} //segitiga sama kaki 
+
+function dx(t1,t2,dt,d){
+	var tmp,m;
+
+	if( t2 < t1 ){
+		//swap
+		tmp = t1;
+		t1 = t2;
+		t2 = tmp;
+	}
+
+	if( t1 < 0 ) t1 = 0;
+	if( t2 > dt ) return 0;
+
+	tmp = dt/2;
+	m = 2 * d / dt / dt;
+
+	if( t1 < tmp && tmp < t2 ){
+		//dx(t1,tmp)+dx(tmp,t2);
+		return m * ( 2 * tmp * tmp - t1 * t1 - Math.pow( dt-t2, 2 ) );
+	}
+	
+	if( t2 <= tmp ){
+		return m * ( t2*t2 - t1*t1 );
+	}
+	
+	if( t1 >= tmp ){
+		return m * ( Math.pow( dt-t1, 2 ) - Math.pow( dt-t2, 2 ) );
+	}
+	
+	
+	alert("IMPOSIBRU" + t1 + " " + tmp + " " + t2 );
+	
+} //hasil optimasi buat fungsi dx pertama
+
+function dx2( t1, t2, dt, d ){
+	if( t2 < t1 ){
+		return dx( t2, t1,dt,d );
+	}else if( t1 < 0 ){
+		return dx( 0, t2,dt,d );
+	}else if( t2 > dt ){
+		return 0;
+	} else {
+		return d / dt / dt * ( Math.pow( dt-t1,2)  - Math.pow( dt-t2,2 ) );
+	}
+} //segitiga siku2
+
+function dx2( t1, t2, dt, d ){
+	var tmp;
+
+	if( t2 < t1 ){
+		//swap
+		tmp = t1;
+		t1 = t2;
+		t2 = tmp;
+	}
+
+	if( t1 < 0 ) t1 = 0;
+	if( t2 > dt ) return 0;
+	
+	return d / dt / dt * ( Math.pow( dt-t1,2)  - Math.pow( dt-t2,2 ) );
+	
+} //hasil optimasi
+
+function dx3( t1, t2, dt, d ){
+	var tmp;
+
+	if( t2 < t1 ){
+		//swap
+		tmp = t1;
+		t1 = t2;
+		t2 = tmp;
+	}
+
+	if( t1 < 0 ) t1 = 0;
+	if( t2 > dt ) return 0;
+	
+	return d / dt / dt * ( t2*t2  - t1*t1 );
+} //deaccel
+
+function dxplus( t1,t2,dt,d,p ){
+	p = p - Math.floor(p); //safety first
+	
+	var tmp,m;
+
+	if( t2 < t1 ){
+		//swap
+		tmp = t1;
+		t1 = t2;
+		t2 = tmp;
+	}
+
+	if( t1 < 0 ) t1 = 0;
+	if( t2 > dt ) return 0;
+
+	tmp = dt*p;
+
+	if( t1 < tmp && tmp < t2 ){
+		return dxplus(t1,tmp,dt,d,p) + dxplus(tmp,t2,dt,d,p); //need to over optimize
+	}
+	
+	if( t2 <= tmp ){
+		return d / dt / dt / p * ( t2*t2 - t1*t1 );
+	}
+	
+	if( t1 >= tmp ){
+		return d / dt / dt / (1-p) * ( Math.pow( dt-t1, 2 ) - Math.pow( dt-t2, 2 ) );
+	}
+	
+	
+	alert("IMPOSIBRU" + t1 + " " + tmp + " " + t2 );
+	
+
+}
+
+
+var x = 0;
+var y = 0, y2 = 0, y3 = 0, y4 = 0, y5 = 0;
+
+function main(){
+	//clear the screen
+//	canvas.width = canvas.width;
+
+	ctx.fillStyle = "#FFFFFF";
+	ctx.fillRect( 0,0, canvas.width, canvas.height );
+
+	y = dx( 0, ( x <= 50 ? x*20 : 1000 ), 1000, 600 );
+	
+	//draw the dot
+	ctx.fillStyle = "#FFF000";
+	ctx.fillRect( y, 120, 100, 100 );
+
+	y2 = ( x*12 <= 600 ? x*12 : 600 );
+	ctx.fillStyle = "#F0000F";
+	ctx.fillRect( y2, 10, 100, 100);
+	
+	y3 = dx2( 0, ( x <= 50 ? x*20 : 1000 ), 1000, 600 );
+	//draw the dot
+	ctx.fillStyle = "#FF00FF";
+	ctx.fillRect( y3 , 450, 100, 100 );
+	
+	y4 = dx3( 0, ( x <= 50 ? x*20 : 1000 ), 1000, 600 );
+	//draw the dot
+	ctx.fillStyle = "#00FF00";
+	ctx.fillRect( y4 , 340, 100, 100 );
+
+	y5 = dxplus( 0, ( x <= 50 ? x*20 : 1000 ), 1000, 600, 0.8 );
+	//draw the dot
+	ctx.fillStyle = "#00FFF0";
+	ctx.fillRect( y5 , 230, 100, 100 );
+	
+	//increment
+	x++;
+	if( x >= 300 ) return; 
+	setTimeout( "main()", 20 );
+}
+
+window.onload = function(){
+	
+	main(); 
+}
+
+</script>
+
+</body></html>
