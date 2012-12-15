@@ -1,5 +1,6 @@
 /*
-	By Remax - Synergy
+	By Remax From Synergy
+		2012
 	*/
 
 #include <iostream>
@@ -9,7 +10,7 @@
 #include <vector>
 
 using namespace std;
-namespace RemaxDb {
+namespace LiteDb {
 	void encrypt( unsigned char * ptr, int size ){
 		static const unsigned int prime = 224284387;
 		static const unsigned int base = 707;
@@ -40,7 +41,7 @@ namespace RemaxDb {
 		return;
 	}
 	
-	void decrypt( unsigned char * ptr, int size ){
+	void decrypt( unsigned char * ptr, int size ) {
 		static const unsigned int prime = 224284387;
 		static const unsigned int base = 707;
 		static const unsigned int power = 100000000;
@@ -82,14 +83,17 @@ namespace RemaxDb {
 	}
 
 	template< class T > void FastWrite( const string& filename, vector<T>& array ){
-		RemaxDb::encrypt( (unsigned char *)array.data(), array.size() * (sizeof(T)/sizeof(unsigned char)) );
+		LiteDb::encrypt( (unsigned char *)array.data(), array.size() * (sizeof(T)/sizeof(unsigned char)) );
 
 		FastFileWrite( filename, (void *)array.data(), array.size() * ( sizeof(T) / sizeof(void) ) );
 	}
 
 	template< class T > struct buffer_t {
 		buffer_t(){}
-
+		~buffer_t(){
+			delete[] buffer;
+		}
+		
 		buffer_t( void * ptr, int s ){
 			set( ptr, s );
 		}
@@ -121,7 +125,7 @@ namespace RemaxDb {
 			in.read( buffer, size );
 			in.close();
 
-			RemaxDb::decrypt( (unsigned char*) buffer, size );
+			LiteDb::decrypt( (unsigned char*) buffer, size );
 
 			return buffer_t<T> ( buffer, size );
 		}
@@ -129,7 +133,6 @@ namespace RemaxDb {
 		throw(errno);
 
 	}
-	
 }
 
 struct two {
@@ -148,12 +151,12 @@ int main(){
 
 //	void * p = static_cast<void *>( data );
 
-//	RemaxDb::FastFileWrite( "Data", static_cast<char *>(p), data_size * ( sizeof(int) / sizeof(char) ) );
-	RemaxDb::FastWrite<int>( "Data", data );
+//	LiteDb::FastFileWrite( "Data", static_cast<char *>(p), data_size * ( sizeof(int) / sizeof(char) ) );
+	LiteDb::FastWrite<int>( "Data", data );
 	
 	/* read */
 
-	RemaxDb::buffer_t<two> lol = RemaxDb::FileRead<two>( "Data" );
+	LiteDb::buffer_t<two> lol = LiteDb::FileRead<two>( "Data" );
 
 
 	for( int i = 0; i < lol.size; i++ ){

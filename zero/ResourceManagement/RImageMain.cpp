@@ -6,12 +6,14 @@ int main(){
 
 	ResetImageNeeds();
 
-	image -> needed( true );
-	image2 -> needed( true );
+	image 	-> needed( true );
+	image2 	-> needed( true );
 
+	// load all the stuff needed
 	ManageImage();
 
 	image -> setOpacity( 50 );
+	image2 -> setRect( sf::IntRect( 100, 100, 200, 200 ) );
 
 	sf::RenderWindow App(sf::VideoMode( 1280, 720 ), "VN System", 1 << 2 ); //480p for testing
 	App.setFramerateLimit( 20 ); //Maximum FPS
@@ -34,6 +36,6 @@ int main(){
 		App.display();
 
 	}
-	
+
 	return 0;
 }

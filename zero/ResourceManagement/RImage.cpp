@@ -35,7 +35,7 @@ public:
 		resNeeded = false;
 	}
 
-	image_t( const string& FL ){
+	image_t( const string& FL ){		
 		fileLoc = FL;
 		resLoaded = false;
 		resNeeded = false;
@@ -195,11 +195,12 @@ void ManageImage(){
 
 image_t * get_image( const string& fileLoc ){
 	for( int i = 0; i < imagePool.size(); ++i ){
-		if( imagePool[i] -> fileLocation() == fileLoc )
+		if( imagePool[i] -> fileLocation() == fileLoc ){
 			return imagePool[i];
+		}
 	}
-
-	imagePool.push_back( new image_t( fileLoc ) );
+	
+	imagePool.push_back( new image_t( fileLoc ) );	
 	return imagePool.back();
 }
 
@@ -263,7 +264,7 @@ public:
 		image -> draw( App, _x, _y );
 	}
 
-	const string& fileLocation(){
+	const string& fileLocation() const {
 		return image -> fileLocation();
 	}
 
