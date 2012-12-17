@@ -1,0 +1,135 @@
+<html>
+
+<body>
+<canvas id=canvas width=1000 height=600></canvas>
+
+<script>
+
+var ctx = document.getElementById("canvas").getContext("2d");
+var Deaccel = function(p) {
+	return 1 - Math.pow(2, -10 * p);
+}
+		
+var SinAmp = function(p){
+	return 1 - Math.pow(1-p,2) * Math.cos( Math.pow(p,2) * Math.PI * 4 );
+}
+
+var SinSquare = function(p)
+{
+	return Math.cos( p * p * Math.PI * 2 );
+}
+
+var Accel = function(p) {
+	return Math.pow(2, 10 * (p - 1)) - 0.0001;
+}
+
+var SeeSaw = function(p) {
+	if( p < 0.5 ){
+		return 0.5 * Math.pow( 2, 10 * ( p * 2 - 1 ) );
+	} else {
+		return 0.5 * (2 - Math.pow(2, -10 * ( p * 2 - 1 )));
+	}
+}
+
+var SinOut = function(p) {
+	return Math.sin( p * Math.PI / 2 );
+}
+var BounceIn = function(p) {
+				if ((p = 1 - p) < 1 / 2.75) {
+					return 1 - (7.5625 * p * p);
+				} else if (p < 2 / 2.75) {
+					return 1 - (7.5625 * (p -= 1.5 / 2.75) * p + .75);
+				} else if (p < 2.5 / 2.75) {
+					return 1 - (7.5625 * (p -= 2.25 / 2.75) * p + .9375);
+				} else {
+					return 1 - (7.5625 * (p -= 2.625 / 2.75) * p + .984375);
+				}
+			}
+var BounceOut = function(p) {
+				if (p < 1 / 2.75) {
+					return 7.5625 * p * p;
+				} else if (p < 2 / 2.75) {
+					return 7.5625 * (p -= 1.5 / 2.75) * p + .75;
+				} else if (p < 2.5 / 2.75) {
+					return 7.5625 * (p -= 2.25 / 2.75) * p + .9375;
+				} else {
+					return 7.5625 * (p -= 2.625 / 2.75) * p + .984375;
+				}
+			}
+			
+var BounceInOut = function(p) {
+				var invert = (p < 0.5);
+				if (invert) {
+					p = 1 - (p * 2);
+				} else {
+					p = (p * 2) - 1;
+				}
+				if (p < 1 / 2.75) {
+					p = 7.5625 * p * p;
+				} else if (p < 2 / 2.75) {
+					p = 7.5625 * (p -= 1.5 / 2.75) * p + 0.75;
+				} else if (p < 2.5 / 2.75) {
+					p = 7.5625 * (p -= 2.25 / 2.75) * p + 0.9375;
+				} else {
+					p = 7.5625 * (p -= 2.625 / 2.75) * p + 0.984375;
+				}
+				return invert ? (1 - p) * 0.5 : p * 0.5 + 0.5;
+			}
+var SinIn = function(p) {
+	return 1 - Math.cos( p * Math.PI / 2 );
+}
+
+var CustomAccel = function(p){
+	return p*p*p;
+}
+
+var CustomDeaccel = function(p){
+	return 2*p - p*p;
+}
+
+var CustomSeeSaw = function(p){
+	if( p < 0.4 ){
+		return p*p*2;
+	} else {
+		return 1 - (--p * p*2);
+	}
+}
+
+
+var x = 1, img;
+function draw( ){	
+	if( x == 1000 ) return;
+	if( x <= 1000 ){
+		ctx.globalAlpha = Deaccel( x / 10000 );;
+		ctx.fillStyle = "#FFF";
+		ctx.fillRect( 0, 0, 1000, 600 );
+	}
+	
+	ctx.globalAlpha = x >= 100 ? 1 : Accel( x / 100 );
+	y = SeeSaw( x / 100 );
+	
+//	ctx.fillStyle = "#00FF00";
+//	ctx.fillRect( y * 500, 100 , 50, 50);
+	ctx.drawImage( img, 0,550,450,200,600-y * 500, 100, 450,200 );
+
+	y = Deaccel( x / 100 );
+	ctx.fillStyle = "#FF0000";
+//	ctx.fillRect( y * 500, 200 , 50, 50);
+
+	x++;
+}
+
+window.onload = function(){
+	img = new Image();
+	img.src = "Whale_Fast_sketch_2.png";
+	
+	img.onload = function(){
+		setInterval( "draw()", 9 );
+	}
+}
+
+
+</script>
+</body>
+
+</html>
