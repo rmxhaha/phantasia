@@ -1,0 +1,97 @@
+<html>
+<body>
+<canvas id=canvas width=1000 height=600></canvas>
+<div id=log>LOGS</div>
+<script>
+var ctx = document.getElementById("canvas").getContext("2d");
+var img;
+var t = 0;
+var dur = 2000;
+var wx = 600;
+var dx = 500;
+var wy = 100;
+
+var SeeSaw = function(p) {
+	if( p < 0.5 ){
+		return 0.5 * Math.pow( 2, 10 * ( p * 2 - 1 ) );
+	} else {
+		return 0.5 * (2 - Math.pow(2, -10 * ( p * 2 - 1 )));
+	}
+}
+
+var Deaccel = function(p) {
+	return 1 - Math.pow(2, -10 * p);
+}
+
+var tween_alpha_t = function( x, y, Func, _duration, Alpha_ ){
+	this.Func = Func;
+	this.duration = _duration;
+	this.Alpha = Alpha_;
+	this.DAlpha = Alpha_;
+	this.x = x;
+	this.y = y;
+	this.time = 0;
+			
+	return this;
+};
+var alpha_pool = [];
+
+function infinite(){
+	wx -= ( SeeSaw( (t+20) / dur ) - SeeSaw( t / dur ) ) * dx;
+	t += 20;
+	
+	ctx.globalAlpha = 1;
+	ctx.fillStyle = "#FFF";
+	ctx.fillRect( 0, 0, 1000, 600 );
+/*
+	ctx.drawImage(
+		img, 0, 550,450,200, 
+		wx, wy, 450,200 
+	);
+*/
+	if( t > dur ) return;
+	
+	var str = "";
+	
+	for( var i = 0; i < alpha_pool.length; ++i )
+	{
+		alpha_pool[i].time += 20;
+		alpha_pool[i].Alpha = ( 1 - alpha_pool[i].Func( alpha_pool[i].time / alpha_pool[i].duration ) ) * alpha_pool[i].DAlpha;
+		
+		if( alpha_pool[i].time <= alpha_pool[i].duration ){
+			ctx.globalAlpha = alpha_pool[i].Alpha;
+			ctx.drawImage(
+				img, 0, 550,450,200, 
+				alpha_pool[i].x, alpha_pool[i].y, 450,200 
+			);
+		}
+		str += alpha_pool[i].x + " " + alpha_pool[i].y + " " + alpha_pool[i].Alpha + "<BR>";
+	}
+	
+	document.getElementById("log").innerHTML = str;
+	var tmp = wx + 1 - 1;
+
+	alpha_pool[ alpha_pool.length ] = tween_alpha_t( wx, wy, Deaccel, dur, 0.45 );
+	
+	setTimeout( "infinite()", 100 );
+}
+
+/*
+	strange bug
+		x in tween_alpha_t is not modified in any way
+		wx did
+		but somehow x in tween_alpha_t change as great as wx did
+		as if x in tween_alpha_t is wx
+*/
+
+window.onload = function(){
+	img = new Image();
+	img.src = "Whale_Fast_sketch_2.png";
+	img.onload = function(){ 
+		infinite();
+	}
+}
+
+</script>
+</body>
+</html>

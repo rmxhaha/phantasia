@@ -332,7 +332,7 @@ namespace VisualNovel {
 
 		//set the volume to the default global volume
 		SoundFx.setVolume( MUSIC_VOLUME ); 
-				
+		
 		static bool loaded = false;
 		if( !loaded ) //to prevent double calling
 		{

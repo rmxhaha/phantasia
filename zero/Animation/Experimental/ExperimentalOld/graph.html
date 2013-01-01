@@ -1,0 +1,174 @@
+<html><body>
+<canvas id=canvas width=10000 height=1000></canvas>
+<script>
+var ctx = document.getElementById("canvas").getContext("2d");
+
+y = 0, y2 = 0, y3 = 0;
+
+function dx( t1, t2, dt, d ){
+	if( t2 < t1 ){
+		return dx( t2, t1,dt,d );
+	}else if( t1 < 0 ){
+		return dx( 0, t2,dt,d );
+	}else if( t2 > dt ){
+		return 0;
+	}else if( t1 < dt/2 && dt/2 < t2 ){
+		return dx( t1,dt/2,dt,d ) + dx( dt/2, t2,dt,d );
+	}else if( t2 <= dt/2 ){
+		return 2 * d / dt / dt * ( t2*t2 - t1*t1 );
+	}else if( t1 >= dt/2 ){
+		return dx( dt - t2, dt -t1, dt, d );
+	}else{
+		//unexpected to happened
+		alert( t1+" "+t2+" "+dt+" "+d );
+	}
+}
+
+function dx2( t1, t2, dt, d ){
+	if( t2 < t1 ){
+		return dx( t2, t1,dt,d );
+	}else if( t1 < 0 ){
+		return dx( 0, t2,dt,d );
+	}else if( t2 > dt ){
+		return 0;
+	} else {
+		return 2 * d / dt / dt * ( dt-t2*dt-t2 - t1*t1);
+	}
+} //segitiga siku2
+
+var Deaccel = function(p) {
+	return 1 - Math.pow(2, -10 * p);
+}
+						
+var Accel = function(p) {
+	return Math.pow(2, 10 * (p - 1)) - 0.01;
+}
+
+var SeeSaw = function(p) {
+	if( p < 0.5 ){
+		return 0.5 * Math.pow( 2, 10 * ( p * 2 - 1 ) );
+	} else {
+		return 0.5 * (2 - Math.pow(2, -10 * ( p * 2 - 1 )));
+	}
+}
+
+var SinIn = function(p) {
+	return 1 - Math.cos( p * Math.PI / 2 );
+}
+
+var SinOut = function(p) {
+	return Math.sin( p * Math.PI / 2 );
+}
+var SinInOut = function(p) {
+	return -0.5 * (Math.cos(Math.PI * p) - 1);
+}
+
+var SinSquare = function(p){
+	return 1 - ( p - 1 ) * Math.cos( p * Math.PI * 6 - Math.PI );
+}
+var SinAmp = function(p){
+	p = 1 - p;
+	
+	return 1 - Math.pow(p,3) * Math.cos( p * p * Math.PI * 4 );
+}
+
+var BounceIn = function(p) {
+				if ((p = 1 - p) < 1 / 2.75) {
+					return 1 - (7.5625 * p * p);
+				} else if (p < 2 / 2.75) {
+					return 1 - (7.5625 * (p -= 1.5 / 2.75) * p + .75);
+				} else if (p < 2.5 / 2.75) {
+					return 1 - (7.5625 * (p -= 2.25 / 2.75) * p + .9375);
+				} else {
+					return 1 - (7.5625 * (p -= 2.625 / 2.75) * p + .984375);
+				}
+			}
+
+
+var Constant = function(p){
+	return p;
+}
+var BounceOut = function(p) {
+				if (p < 1 / 2.75) {
+					return 7.5625 * p * p;
+				} else if (p < 2 / 2.75) {
+					return 7.5625 * (p -= 1.5 / 2.75) * p + .75;
+				} else if (p < 2.5 / 2.75) {
+					return 7.5625 * (p -= 2.25 / 2.75) * p + .9375;
+				} else {
+					return 7.5625 * (p -= 2.625 / 2.75) * p + .984375;
+				}
+			}
+var BounceInOut = function(p) {
+				var invert = (p < 0.5);
+				if (invert) {
+					p = 1 - (p * 2);
+				} else {
+					p = (p * 2) - 1;
+				}
+				if (p < 1 / 2.75) {
+					p = 7.5625 * p * p;
+				} else if (p < 2 / 2.75) {
+					p = 7.5625 * (p -= 1.5 / 2.75) * p + 0.75;
+				} else if (p < 2.5 / 2.75) {
+					p = 7.5625 * (p -= 2.25 / 2.75) * p + 0.9375;
+				} else {
+					p = 7.5625 * (p -= 2.625 / 2.75) * p + 0.984375;
+				}
+				return invert ? (1 - p) * 0.5 : p * 0.5 + 0.5;
+			}
+
+var CustomDeaccel = function(p){
+	return 2*p-p*p;
+}
+var CustomSeeSaw = function(p){
+	if( p < 0.5 ){
+		return p*p*2;
+	} else {
+		return 1 - (--p * p*2);
+	}
+}
+
+for( x = 0; x < 10000; ++x ){
+	//y += dx2( x, x+1, 1000, 999 );
+	
+	ctx.fillStyle = "#00FF00";
+	ctx.fillRect( x, (1-Math.pow( 3, -7*x/10000)) * 500 ,2, 2 );
+//		return Math.pow(2, 10 * (p - 1)) - 0.0001;
+
+	y = (1-Math.pow( 2, -10*x/10000)) * 500;
+	ctx.fillStyle = "#FFFF00";
+	ctx.fillRect(x,y,2,2);
+	
+	
+	
+	/*
+	y = SeeSaw( x / 10000 ) * 500;
+	ctx.fillStyle = "#0000FF";
+	ctx.fillRect(x,y,2,2);
+	
+	y = SinOut( x / 10000 ) * 500;
+	ctx.fillStyle = "#FFFF00";
+	ctx.fillRect(x,y,2,2);
+
+	y = SinIn( x / 10000 ) * 500;
+	ctx.fillStyle = "#00FFFF";
+	ctx.fillRect(x,y,2,2);
+	
+	y = Constant( x / 10000) * 500;
+	ctx.fillStyle = "#FF00FF";
+	ctx.fillRect(x,y,2,2);
+	
+	y = Deaccel( x / 10000 ) * 500;
+	ctx.fillStyle = "#FF0000";
+	ctx.fillRect(x,y,2,2);
+	
+	y = SinInOut( x / 10000 ) * 500;
+	ctx.fillStyle = "#000000";
+	ctx.fillRect(x,y,2,2);
+	*/
+	
+}
+
+
+</script></body></html>

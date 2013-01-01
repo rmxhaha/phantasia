@@ -1,0 +1,42 @@
+# depslib dependency file v1.0
+1356721461 source:d:\labs\phantasia\alpha\main.cpp
+	<SFML/Graphics.hpp>
+	<iostream>
+	<iomanip>
+	<string>
+	<limits>
+	<vector>
+	<cmath>
+	<cassert>
+	"Animation.cpp"
+	"ResourceManager.cpp"
+	"RString.cpp"
+	"Array2D.cpp"
+	"VisualNovel.cpp"
+
+1355941278 d:\labs\phantasia\alpha\animation.cpp
+
+1356406455 d:\labs\phantasia\alpha\resourcemanager.cpp
+	<iostream>
+	<string>
+	<vector>
+	<queue>
+	<SFML/Graphics.hpp>
+	<SFML/Audio.hpp>
+
+1355894717 d:\labs\phantasia\alpha\rstring.cpp
+	<cstdlib>
+	<string>
+	<vector>
+
+1356670404 d:\labs\phantasia\alpha\array2d.cpp
+
+1356764942 d:\labs\phantasia\alpha\visualnovel.cpp
+	<SFML/Graphics.hpp>
+	<SFML/Audio.hpp>
+	<cassert>
+	<iostream>
+	<string>
+	"ResourceManager.cpp"
+	"RString.cpp"
+

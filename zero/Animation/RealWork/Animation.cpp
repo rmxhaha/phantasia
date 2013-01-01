@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cmath>
 #include <list>
+#include <vector>
 #include <iomanip>
 #include <limits>
 #include <ctime>
@@ -14,53 +15,54 @@
 
 using namespace std;
 
-template< size_t N >float round_by( const float& input ) {
-	static const float power = pow( 10.f, N );
+template< size_t N >double round_by( const double& input ) {
+	static const double power = pow( 10.f, N );
 	return round( input * power ) / power;
 }
 
-const float PI = atan2( 0.f, -1.f );
-const float HALF_PI = PI / 2;
-const float TWO_PI = PI * 2;
+const double PI = atan2( 0.f, -1.f );
+const double HALF_PI = PI / 2;
+const double TWO_PI = PI * 2;
 
 namespace TweenFx {
-	template< class T > class tween {
+	template< class T > class tween_t {
 	public:
-		typedef float (*AnimationCalc_t)( float );
+		typedef double (*AnimationFunc_t)( double );
 
-		tween( T& elem, const T& delta_data_, AnimationCalc_t ACalc, float duration_ = 0.3f, float delay_time_ = 0.f, int repeat_ = 1 )
+		tween_t( T& elem, const T& delta_data_, AnimationFunc_t ACalc, double duration_ = 0.3f, double delay_time_ = 0.f, int repeat_ = 1 )
 		{
 			element_ = &elem;
 			delta_data = delta_data_;
-			AnimationCalc = ACalc;
+			AnimationFunc = ACalc;
 
 			duration = duration_;
 			delay_time = delay_time_;
+			end_time = delay_time + duration;
 			repeat = repeat_;
+
 			repeat_index = 0;
 			now_time = 0.0;
+			Func_Range = ACalc( 1 ) - ACalc( 0 );
+			sigma_dx_ = 0.0;
 		}
 
-		T sigma_dx() {
-			return delta_data * ( repeat + AnimationCalc( now_time / duration ) );
+		T sigma_dx() const {
+			return sigma_dx_;
 		}
 
-		T dx() {
-			return AnimationCalc( now_time / duration );
-		}
-
-		void update( const float& dt )
+		void update( const double& dt )
 		{
 			assert( dt > 0 );
 
-			float end_time = delay_time + duration;
-			float last_time;
+			double last_time;
+			double temporary;
 
 			last_time = now_time;
 			now_time += dt;
 
-			do {
+			if ( repeat == repeat_index ) return; // Animation has ended
 
+			do {
 				if ( now_time <= delay_time ) return; // waiting ...
 
 				/* Delay no more */
@@ -80,22 +82,19 @@ namespace TweenFx {
 				if ( last_time < delay_time ) last_time = delay_time;
 
 				if ( now_time < end_time ) {
-					manip_elem( last_time, now_time );
+					temporary = getDelta( last_time, now_time );
+					*element_ += temporary;
+					sigma_dx_ += temporary;
 
 				} else if ( last_time < end_time ) {
-					manip_elem( last_time, end_time );
+					temporary = getDelta( last_time, end_time );
+					*element_ += temporary;
+					sigma_dx_ += temporary;
 
 					now_time = now_time - end_time;
 
 					// App repeat
 					repeat_inc();
-					
-					// due to inaccurate Animation Calculation
-					// Data is round_by 3
-					
-					// *element_ = round_by<3>( *element_ );
-					
-					// The code above is not neccesarry anymore it had been fixed in "manip_elem" Function
 
 					// Just in case
 					continue;
@@ -104,11 +103,62 @@ namespace TweenFx {
 			} while( end_time <= now_time && repeat != repeat_index );
 		}
 
+		bool hasFinished() const {
+			return repeat_index == repeat;
+		}
+
+		double timeLeft() const {
+			if( repeat < 0 ) return INFINITY;
+
+			return ( repeat - repeat_index ) * end_time - now_time;
+		}
+
+		double timeElapsed() const {
+			return repeat_index * end_time + now_time;
+		}
+
+		AnimationFunc_t getFunc() const {
+			return AnimationFunc;
+		}
+
+		void reverse(){
+			reverse( timeElapsed(), 0.f, AnimationFunc );
+		}
+
+		void reverse( const double& duration_, double delay_time_ = 0.f ){
+			reverse( duration_, delay_time_, AnimationFunc );
+		}
+
+		void reverse( double duration_, double delay_time_ , AnimationFunc_t ACalc )
+		{
+			if( ACalc != AnimationFunc ) {
+				AnimationFunc = ACalc;
+				Func_Range = ACalc( 1 ) - ACalc( 0 );
+			}
+
+			delta_data = -sigma_dx();
+
+			duration = duration_;
+			delay_time = delay_time_;
+			end_time = duration_ + delay_time_;
+
+			repeat = 1;
+			repeat_index = 0;
+			now_time = 0.0;
+			sigma_dx_ = 0.0;
+		}
+		
+		void force_end(){
+			repeat_index = repeat;
+		}
+		
 	private:
 
-		void manip_elem( float t1, float t2 ) {
+		double getDelta( double t1, double t2 ) {
 			assert( t1 < t2 );
 			assert( duration > 0 );
+
+//			cout << setw( 10 ) << t1 << setw( 10 ) << t2;
 
 			t1 -= delay_time;
 			t2 -= delay_time;
@@ -118,10 +168,12 @@ namespace TweenFx {
 			assert( 0.f <= t2 );
 			assert( t2 <= duration );
 
-			t1 = AnimationCalc( t1 / duration );
-			t2 = AnimationCalc( t2 / duration );
-			
-			*element_ += ( ( t2 - t1 ) / ( AnimationCalc( 1 ) - AnimationCalc( 0 ) ) ) * delta_data;
+			t1 = AnimationFunc( t1 / duration );
+			t2 = AnimationFunc( t2 / duration );
+
+			return ( ( t2 - t1 ) / Func_Range ) * delta_data;
+
+//			cout << setw( 10 ) << t1 << setw( 10 ) << t2 << setw( 10 ) << ( t2 - t1 ) / Func_Range << endl;
 		}
 
 		void repeat_inc(){
@@ -132,7 +184,10 @@ namespace TweenFx {
 		}
 
 		// Function pointer to the wanted function
-		AnimationCalc_t AnimationCalc;
+		AnimationFunc_t AnimationFunc;
+
+		// Function Range
+		double Func_Range;
 
 		// Target Element
 		T * element_;
@@ -140,74 +195,184 @@ namespace TweenFx {
 		// Delta to target
 		T delta_data;
 
-		// Delay Before the animation starts
-		float delay_time;
+		// Delta since the beginning
+		T sigma_dx_;
 
-		float now_time;
+		// Delay Before the animation starts
+		double delay_time;
+
+		double now_time;
+
+		// total time per cycle
+		double end_time;
 
 		// Animation Duration
-		float duration;
+		double duration;
 
 		// How many times to repeat
 		int repeat;
 
 		// How many times have the animation been repeated
 		int repeat_index;
-
 	};
 
-	float Constant( float p ) {
+	template< class T > class timeline_t {
+	public:
+		timeline_t(){
+			paused = false;
+		}
+		
+		tween_t<T> * append( tween_t<T> * data ){
+			array.push_back( data );
+			return data;
+		}
+
+		void update( unsigned dt ){
+			this -> update( ( double ) dt / 1000.0 );
+		}
+
+		void update( const double& dt ){
+			assert( dt > 0.0 );
+			if( !paused ){
+				auto itr = array.begin();
+				while( itr != array.end() ){
+					if( (**itr).hasFinished() ){
+						itr = array.erase( itr );
+						continue;
+					}
+
+					(**itr).update( dt );
+
+					itr ++;
+				}
+			}
+		}
+		
+		void pause() { paused = true; }
+			
+		void resume() { paused = false; }
+
+		
+	private:
+		bool paused; // 3 bit loss
+		list< tween_t<T>* > array;
+	};
+	
+	timeline_t<double> TweenEngine;
+	
+	typedef tween_t<double> tween;
+	
+		
+	
+	double Constant( double p ) {
 		return p;
 	}
 
-	float Deaccel( float p ) {
+	double Deaccel( double p ) {
 		return 1 - pow( 2, -10 * p );
 	}
 
-	float Accel( float p ) {
+	double Accel( double p ) {
 		return pow(2, 10 * (p - 1)) - 0.001;
 	}
 
-	float SeeSaw( float p ) {
+	double SeeSaw( double p ) {
 		if( p < 0.5 ){
 			return 0.5 * pow( 2, 10 * ( p * 2 - 1 ) );
 		} else {
 			return 0.5 * (2 - pow(2, -10 * ( p * 2 - 1 )));
 		}
 	}
-	
-	float SinUnder( float p ) {
+
+	double SinUnder( double p ) {
 		return 1.0 - cos( p * HALF_PI );
 	}
 
-	float SinUpper( float p ) {
+	double SinUpper( double p ) {
 		return sin( p * HALF_PI );
 	}
+
+	double BounceIn( double p ) {
+		p = 1 - p;
+		if ( p < 1 / 2.75) {
+			return 1.0 - (7.5625 * p * p);
+
+		} else if ( p < 2 / 2.75 ) {
+			p -= 1.5 / 2.75;
+			return 1 - (7.5625 * p * p + .75);
+
+		} else if (p < 2.5 / 2.75) {
+			p -= 2.25 / 2.75;
+			return 1 - (7.5625 * p * p + .9375);
+
+		} else {
+			p -= 2.625 / 2.75;
+			return 1 - (7.5625 * p * p + .984375);
+		}
+	}
+
+
 };
+
+/*
+	BUGS LISTS
+		-
+	WANTED FEATURE
+		-
+*/
 
 int main() {
 	using namespace TweenFx;
 
+	cout << sizeof( tween_t<double> ) << endl;
+
 /*
-	float z = 0.f;
-	for( int i = 0; i <= 5; i ++ ){
+	double z = 0.f;
+	for( int i = 0; i <= 5; i ++ ) {
 		z += ( SeeSaw( ( i + 1 ) / 5 ) - SeeSaw( i / 5 ) );
 	}
-	
+
 	cout << z << endl;
 	cout << SeeSaw( 1 ) << endl;
 	cout << SeeSaw( 0 ) << endl;
 
 	return 0;
 */
-	
-	float a = 0;
-	TweenFx::tween<float> xoxo( a, 10000.f, TweenFx::Deaccel, 0.5f, 0.5f, 2 );
 
-	for( int i = 0; i < 200; ++i ){
-		xoxo.update( 0.01f );
-		cout << a << endl;
-	}
+	double a = 20000.0;
+	clock_t t  = clock();
 	
+	for( double i = 0.0; i<100000000.0; i+= 1.0 );
+	clock_t timper10M = clock() - t;
+	
+	cout << "Time on 10M itr " << timper10M << endl;
+	
+	t = clock();
+	
+
+	cout << a << endl;
+	
+	TweenEngine.append( new tween( a, 100.0, TweenFx::SeeSaw, 0.5f, 0.5f, -1 ) );
+	tween * xoxo = TweenEngine.append( new tween( a, 10000.0, TweenFx::Deaccel, 0.5f, 0.5f, 2 ) );
+
+	for( unsigned g = 0; g < 20000; g ++ ){
+		for ( unsigned i = 0; i < 200; ++i ) {
+			TweenEngine.update( 10u );
+		}
+
+		xoxo->reverse( 2.f );
+
+		for ( unsigned i = 0; i < 200; ++i ) {
+			TweenEngine.update( 0.01 );
+		}
+		
+		xoxo->reverse( 2.f );
+	}
+
+	cout << a << endl;
+	
+	double p = ( clock() - t ) / 8000.0;
+	cout << "Time per 1000 update : "<<  p << " Miliseconds" << endl;
+	cout << "Average Iteration per 1000 calculation : " << p / ( timper10M / 100000000.0 );
 	return 0;
 }
